@@ -1,12 +1,38 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/syscalls.h>
+
+
 unsigned long **sys_call_table;
 asmlinkage long (*ref_sys_cs3013_syscall1)(void);
+asmlinkage long (*ref_sys_open)(const char * filename, int flags, int mode);
+asmlinkage long (*ref_sys_close)(unsigned int fd);
+// asmlinkage long (*ref_sys_read) (unsigned int fd, char __user *buf, size_t count);
+
+
 asmlinkage long new_sys_cs3013_syscall1(void) {
-  printk(KERN_INFO "\"’Hello world?!’ More like ’Goodbye, world!’ EXTERMINATE!\" -- Dalek");
+  printk(KERN_INFO "\"'Hello world?!' More like 'Goodbye, world!' EXTERMINATE!\" -- Dalek");
   return 0;
 }
+
+asmlinkage long new_sys_open(const char * filename, int flags, int mode) {
+  int user = current_uid();
+  if (user >= 1000)
+    printk(KERN_INFO "User %d is opening file %s", user, filename);
+  return ref_sys_open(filename, flags, mode);
+}
+
+asmlinkage long new_sys_close(unsigned int fd) {
+  int user = current_uid();
+  if (user >= 1000)
+    printk(KERN_INFO "User %d is closing file descriptor: %d", user, fd);
+  return ref_sys_close(fd);
+}
+
+// asmlinkage long new_sys_read(unsigned int fd, char __user *buf, size_t count){
+// }
+
+
 static unsigned long **find_sys_call_table(void) {
   unsigned long int offset = PAGE_OFFSET;
   unsigned long **sct;
@@ -14,7 +40,7 @@ static unsigned long **find_sys_call_table(void) {
     sct = (unsigned long **)offset;
     if (sct[__NR_close] == (unsigned long *) sys_close) {
       printk(KERN_INFO "Interceptor: Found syscall table at address: 0x%02lX",
-      (unsigned long) sct);
+        (unsigned long) sct);
       return sct;
     }
     offset += sizeof(void *);
