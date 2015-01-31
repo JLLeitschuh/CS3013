@@ -1,0 +1,87 @@
+peter@peter-VirtualBox:~/Desktop/Project1$ ./shell < test2.txt
+Makefile     output.txt    runCommand.o  shell2.c~  test2.txt	test.txt~
+Makefile~    output.txt~   shell	 shell2.o   test2.txt~
+output2.txt  runCommand    shell2	 shell.c    test3.txt
+output3.txt  runCommand.c  shell2.c	 shell.o    test.txt
+==> Wall-Clock Time: 1.099 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 265
+peter
+==> Wall-Clock Time: 1.758 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 3
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 260
+runCommand  runCommand.c
+==> Wall-Clock Time: 0.961 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 2
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 264
+Tue Jan 27 08:39:49 EST 2015
+==> ==> Wall-Clock Time: 0.568 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 2
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 203
+    January 2015      
+Su Mo Tu We Th Fr Sa  
+             1  2  3  
+ 4  5  6  7  8  9 10  
+11 12 13 14 15 16 17  
+18 19 20 21 22 23 24  
+25 26 27 28 29 30 31  
+                      
+==> Wall-Clock Time: 1.311 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 16
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 291
+ 08:39:49 up 2 days, 15:15,  2 users,  load average: 0.39, 0.28, 0.17
+==> Wall-Clock Time: 1.060 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 2
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 244
+             total       used       free     shared    buffers     cached
+Mem:        507224     491328      15896       7624      51492      99128
+-/+ buffers/cache:     340708     166516
+Swap:       522236     149972     372264
+==> Wall-Clock Time: 1.678 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 9
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 236
+==> error: invalid argument(s)
+==> Wall-Clock Time: 0.304 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 2
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 54
+==> Wall-Clock Time: 3000.975 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 2
+Page Faults: 0
+Page Reclaims: 192
+==> 
+

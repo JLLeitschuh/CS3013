@@ -1,0 +1,106 @@
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand ls
+Makefile     output.txt    shell      shell2.o	 test3.txt
+Makefile~    runCommand    shell2     shell.c	 test.txt
+output2.txt  runCommand.c  shell2.c   shell.o	 test.txt~
+output3.txt  runCommand.o  shell2.c~  test2.txt
+Wall-Clock Time: 1.473 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 15
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 266
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand ls /home
+peter
+Wall-Clock Time: 0.917 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 260
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand cd /home
+error: invalid argument(s)
+Wall-Clock Time: 0.219 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 57
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand ls
+Makefile     output.txt    shell      shell2.o	 test3.txt
+Makefile~    runCommand    shell2     shell.c	 test.txt
+output2.txt  runCommand.c  shell2.c   shell.o	 test.txt~
+output3.txt  runCommand.o  shell2.c~  test2.txt
+Wall-Clock Time: 1.312 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 15
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 265
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand date
+Tue Jan 27 08:35:52 EST 2015
+Wall-Clock Time: 48.044 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 2
+Page Faults: 1
+Page Reclaims: 202
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand cal
+    January 2015      
+Su Mo Tu We Th Fr Sa  
+             1  2  3  
+ 4  5  6  7  8  9 10  
+11 12 13 14 15 16 17  
+18 19 20 21 22 23 24  
+25 26 27 28 29 30 31  
+                      
+Wall-Clock Time: 1.981 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 16
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 291
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand uptime
+ 08:36:05 up 2 days, 15:11,  2 users,  load average: 0.30, 0.20, 0.12
+Wall-Clock Time: 0.766 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 243
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand free
+             total       used       free     shared    buffers     cached
+Mem:        507224     490756      16468       7588      49216     104668
+-/+ buffers/cache:     336872     170352
+Swap:       522236     149968     372268
+Wall-Clock Time: 1.147 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 8
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 236
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand asdf
+error: invalid argument(s)
+Wall-Clock Time: 0.224 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 2
+Voluntary CPU Giveups: 1
+Page Faults: 0
+Page Reclaims: 56
+peter@peter-VirtualBox:~/Desktop/Project1$ ./runCommand sleep 5
+Wall-Clock Time: 5000.890 ms
+User CPU Time Used: 0.000 ms
+System CPU Time Used: 0.000 ms
+Involuntary Preemptive Proceses: 0
+Voluntary CPU Giveups: 2
+Page Faults: 0
+Page Reclaims: 192
+

@@ -1,0 +1,18 @@
+ls
+ls /home
+ls /home/peter/Desktop/Project1.1
+cd /home
+date
+cal
+uptime
+free
+thisisabadcommand
+sleep 3
+gedit testfile1&
+gedit testfile2 &
+ls
+gedit testfile3&
+jobs
+
+sleep 5 && echo bloop
+

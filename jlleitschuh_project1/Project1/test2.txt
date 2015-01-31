@@ -1,0 +1,10 @@
+ls
+ls /home
+ls /home/peter/Desktop/Project1.1
+cd /home
+date
+cal
+uptime
+free
+thisisabadcommand
+sleep 3

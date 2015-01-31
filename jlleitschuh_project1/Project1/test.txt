@@ -1,0 +1,10 @@
+ls
+ls /home
+cd /home
+ls
+date
+cal
+uptime
+free
+asdf
+sleep 5
