@@ -2,14 +2,18 @@
 #include <linux/module.h>
 #include <linux/syscalls.h>
 
+/*
+ * Syscall numbers found:
+ * http://syscalls.kernelgrok.com/
+ */
 #define OPEN_SYSCALL 5
+#define CLOSE_SYSCALL 6
 
 unsigned long **sys_call_table;
 asmlinkage long (*ref_sys_cs3013_syscall1)(void);
 asmlinkage long (*ref_sys_open)(const char * filename, int flags, int mode);
 asmlinkage long (*ref_sys_close)(unsigned int fd);
-// asmlinkage long (*ref_sys_read) (unsigned int fd, char __user *buf, size_t count);
-
+// asmlinkage long (*ref_sys_read) (unsigned int fd, char __user *bsuf, size_t count);
 
 asmlinkage long new_sys_cs3013_syscall1(void) {
   printk(KERN_INFO "\"'Hello world?!' More like 'Goodbye, world!' EXTERMINATE!\" -- Dalek");
@@ -19,15 +23,18 @@ asmlinkage long new_sys_cs3013_syscall1(void) {
 asmlinkage long new_sys_open(const char * filename, int flags, int mode) {
   int user = current_uid().val;
   if (user >= 1000){
-    printk(KERN_INFO "User %d is opening file %s with flag %d", user, filename, flags);
+    //Note, the syntax for variable is different for printk
+    printk(KERN_INFO "User %d is opening file %s with flag %d\n", user, filename, flags);
   }
   return ref_sys_open(filename, flags, mode);
 }
 
 asmlinkage long new_sys_close(unsigned int fd) {
-  // int user = current_uid();
-  // if (user >= 1000)
-  //   printk(KERN_INFO "User %d is closing file descriptor: %d", user, fd);
+  int user = current_uid().val;
+  if (user >= 1000){
+    //Note, the syntax for variable is different for printk
+    printk(KERN_INFO "User %d is closing file descriptor: %d\n", user, fd);
+  }
   return ref_sys_close(fd);
 }
 
@@ -82,10 +89,12 @@ static int __init interceptor_start(void) {
   /* Store a copy of all the existing functions */
   ref_sys_cs3013_syscall1 = (void *)sys_call_table[__NR_cs3013_syscall1];
   ref_sys_open = (void *)sys_call_table[OPEN_SYSCALL];
+  ref_sys_close = (void *)sys_call_table[CLOSE_SYSCALL];
   /* Replace the existing system calls */
   disable_page_protection();
   sys_call_table[__NR_cs3013_syscall1] = (unsigned long *)new_sys_cs3013_syscall1;
   sys_call_table[OPEN_SYSCALL] = (unsigned long *)new_sys_open;
+  sys_call_table[CLOSE_SYSCALL] = (unsigned long *)new_sys_close;
   enable_page_protection();
   /* And indicate the load was successful */
   printk(KERN_INFO "Loaded interceptor!");
@@ -99,6 +108,7 @@ static void __exit interceptor_end(void) {
   disable_page_protection();
   sys_call_table[__NR_cs3013_syscall1] = (unsigned long *)ref_sys_cs3013_syscall1;
   sys_call_table[OPEN_SYSCALL] = (unsigned long *)ref_sys_open;
+  sys_call_table[CLOSE_SYSCALL] = (unsigned long *)ref_sys_close;
   enable_page_protection();
   printk(KERN_INFO "Unloaded interceptor!");
 }
