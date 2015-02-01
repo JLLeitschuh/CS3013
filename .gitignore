@@ -30,3 +30,23 @@
 *.i*86
 *.x86_64
 *.hex
+
+### Linux ###
+*~
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# Kernel Modules
+.*.mod
+.*.cmd
+.tmp_versions
+Module.symvers
+*.mod.*
+*.o
+*.ko
+modules.order
+*.swp
