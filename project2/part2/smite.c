@@ -5,8 +5,6 @@
 #include <linux/list.h>
 #include <linux/types.h>
 #include <linux/sched.h>
-#include "processinfo.h"
-
 
 unsigned long **sys_call_table;
 
