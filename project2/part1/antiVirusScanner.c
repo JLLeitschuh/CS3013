@@ -45,11 +45,13 @@ asmlinkage long new_sys_read(unsigned int fd, const char __user *bsuf, size_t co
     //Note, the syntax for variable is different for printk
     //printk(KERN_INFO "User %d is reading file descriptor: %d\n", user, fd);
     //‘for’ loop initial declarations are only allowed in C99 mode
-    size_t i;
-    for (i= 4; i < count; i++){
-      if(bsuf[i-4]=='v' && bsuf[i-3]=='i' && bsuf[i-2] =='r' && bsuf[i-1] =='u' && bsuf[i] =='s'){
-        printk(KERN_INFO "User %d is reading file descriptor %d, but that read contained a Virus!", user, fd);
-        break; //Only print once per read, prevents infinite loop of read/write
+    if(count >= 4){
+      size_t i;
+      for (i= 4; i < count; i++){
+        if(bsuf[i-4]=='v' && bsuf[i-3]=='i' && bsuf[i-2] =='r' && bsuf[i-1] =='u' && bsuf[i] =='s'){
+          printk(KERN_INFO "User %d is reading file descriptor %d, but that read contained a Virus!", user, fd);
+          break; //Only print once per read, prevents infinite loop of read/write
+        }
       }
     }
   }
