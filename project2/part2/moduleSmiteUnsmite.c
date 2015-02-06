@@ -139,7 +139,7 @@ asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited,int *smited_pids, l
 	struct task_struct *tsk;
 	for_each_process(tsk) {
 		int i;
-		for (i = 0; i < *num_pid_smitted; i++){
+		for (i = 0; i < *num_pid_smited; i++){
 			if (tsk->pid == smited_pids[i] && tsk->state == -1){
 				tsk->state = 0;
 				int success = wake_up_process(tsk);
