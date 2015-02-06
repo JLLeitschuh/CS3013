@@ -18,4 +18,4 @@ module:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 clean_module:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-clean: clean_module clean_smite clean_smite
+clean: clean_module clean_smite clean_unsmite
