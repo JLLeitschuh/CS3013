@@ -8,29 +8,24 @@
 #include <asm/uaccess.h>
 
 unsigned long **sys_call_table;
+#define MAXLENGTH 100		/* maximum number of processes stored in the array */
 
 asmlinkage long (*ref_sys_cs3013_syscall2)(void);
 asmlinkage long (*ref_sys_cs3013_syscall3)(void);
 
-// *target_uid is a pointer to an unsigned short,
-// *num_pids_smited is a pointer to an integer,
-// *smited_pids is a reference to an integer array of size 100
-// and *pid_states is a reference to a long array of size 100.
-
-// Each of hese variables must have their memory allocated in user space before invoking the system call, otherwise an error will be returned.
-// The system call returns zero if successful or an error indication if not successful.
-
+	/*Smite kernel call*/
 asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
-	int 	ksmited_pids[100];
-	long	kpid_states[100];
+	int 	ksmited_pids[MAXLENGTH];
+	long	kpid_states[MAXLENGTH];
 
-	int myUID = current_uid().val;  //get uid
+	int myUID = current_uid().val;  /*get uid*/
 
 	if(myUID > 1000){
 		printk(KERN_INFO "You must be root to run this command\n");
 		return -1;
 	}
 
+	/*Check to see if the inputs are correct entered*/
 	if(target_uid == NULL){
 		return -1;
 	}
@@ -47,6 +42,7 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 		return -1;
 	}
 
+	/*A user can't smite themself or root*/
 	if (*target_uid == myUID){
 		printk(KERN_INFO "You can't smite yoursef!\n");
 		return -1;
@@ -58,20 +54,24 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 
 	struct task_struct *tsk;
 	int knum_pid_smitted = 0;
+
+	/*Iterate through each process to get the info and smite them if fit the target_uid*/
 	for_each_process(tsk) {
 		unsigned int uid_of_task = tsk->real_cred->uid.val;
 		if(uid_of_task == *target_uid){
 			if(tsk->state == 0){
-				printk(KERN_INFO "[SMITE] Name: %s UID: %u PID: %d State: %ld Smiter: %d\n", tsk->comm,  uid_of_task, tsk->pid, tsk->state, myUID);
-				ksmited_pids[knum_pid_smitted] = tsk->pid;
-				kpid_states[knum_pid_smitted] = tsk->state;
-				tsk->state = -1;
-				knum_pid_smitted ++;
+				if (knum_pid_smitted < MAXLENGTH){
+					printk(KERN_INFO "[SMITE] Name: %s UID: %u PID: %d State: %ld Smiter: %d\n", tsk->comm,  uid_of_task, tsk->pid, tsk->state, myUID);
+					ksmited_pids[knum_pid_smitted] = tsk->pid;
+					tsk->state = TASK_UNINTERRUPTIBLE;
+					kpid_states[knum_pid_smitted] = tsk->state; /*Smite it before putting it in the array*/
+					knum_pid_smitted ++;
+				} else break;
 			}
-
 		}
 	}
 
+	/*copy the pointers to user space*/
 	if(copy_to_user(num_pids_smited, &knum_pid_smitted, sizeof(int))){
 		return EFAULT;
 	}
@@ -88,31 +88,33 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 
 }
 
+/* Unsmite kernel call*/
 asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited, int *smited_pids, long *pid_states){
 	int 	ksmited_pids[*num_pids_smited];
 	long	kpid_states[*num_pids_smited];
 
-	int myUID = current_uid().val;  //get uid
+	int myUID = current_uid().val;  /* get uid */
+
 
 	if(myUID > 1000){
 		printk(KERN_INFO "You must be root to run this command\n");
 		return -1;
 	}
 
-  //Copy smited_pids to kernel
+  	/* Copy smited_pids to kernel */
 	int val;
 	if (val = copy_from_user(ksmited_pids, smited_pids, sizeof(ksmited_pids))){
 		printk(KERN_INFO "ERROR with coppy from user %d\n", val);
 		return EFAULT;
 	}
-    //Copy smited_pids
+    /* Copy smited_pids */
 	if (val = copy_from_user(kpid_states, pid_states, sizeof(kpid_states))){
 		printk(KERN_INFO "ERROR with coppy from user %d\n", val);
 		return EFAULT;
 	}
 
 
-	//Check for errors in copying
+	/* Check for errors in copying */
 	if(num_pids_smited == NULL){
 		return -1;
 	}
@@ -125,13 +127,13 @@ asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited, int *smited_pids, 
 		return -1;
 	}
 
-	// Unsmite the processes from the array
+	/* Unsmite the processes from the array */
+	/* Iterate through each process and unsmite smited processes from the array */
 	struct task_struct *tsk;
 	for_each_process(tsk) {
 		int i;
 		for (i = 0; i < *num_pids_smited; i++){
-			if (tsk->pid == ksmited_pids[i] && tsk->state == -1){
-				//tsk->state = kpid_states[i];
+			if (tsk->pid == ksmited_pids[i] && tsk->state != TASK_RUNNING){
 				int success = wake_up_process(tsk);
 				if (success){
 					printk(KERN_INFO "Wake up sucessful\n");
