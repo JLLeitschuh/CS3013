@@ -10,7 +10,7 @@
 unsigned long **sys_call_table;
 
 asmlinkage long (*ref_sys_cs3013_syscall2)(void);
-
+asmlinkage long (*ref_sys_cs3013_syscall3)(void);
 
 // *target_uid is a pointer to an unsigned short,
 // *num_pids_smited is a pointer to an integer,
@@ -65,7 +65,7 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 			printk(KERN_INFO "UID: %u PID: %d \n", uid_of_task, tsk->pid);
 			ksmited_pids[knum_pid_smitted] = tsk->pid;
 			kpid_states[knum_pid_smitted] = tsk->state;
-			tsk->state = TASK_UNINTERRUPTIBLE;
+			tsk->state = -1;
 			knum_pid_smitted ++;
 		}
 	}
@@ -105,6 +105,55 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 
 }
 
+asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited,int *smited_pids, long *pid_states){
+	int 	ksmited_pids[100];
+	long	kpid_states[100];
+	//Copy num_pids_smited
+	// if (copy_from_user(&knum_pids_smited, num_pids_smited, sizeof knum_pids_smited))
+	// 	return -EFAULT;
+	
+  	//Copy smited_pids to kernel
+	if (copy_from_user(&ksmited_pids, smited_pids, sizeof ksmited_pids))
+		return -EFAULT;
+	
+    //Copy smited_pids
+	if (copy_from_user(&kpid_states, pid_states, sizeof kpid_states))
+		return -EFAULT;
+	return 0;
+
+
+	//Check for errors in copying
+	if(num_pids_smited == NULL){
+		return -1;
+	}
+
+	if(smited_pids == NULL){
+		return -1;
+	}
+
+	if(pid_states == NULL){
+		return -1;
+	}
+
+	// Unsmite the processes from the array
+	struct task_struct *tsk;
+	for_each_process(tsk) {
+		int i;
+		for (i = 0; i < *num_pid_smitted; i++){
+			if (tsk->pid == smited_pids[i] && tsk->state == -1){
+				tsk->state = 0;
+				int success = wake_up_process(tsk);
+				if (success){
+					printk(KERN_INFO "Wake up sucessful\n");
+				}
+				else {
+					printk(KERN_INFO "Can't wake up \n");
+				}
+				printk(KERN_INFO "PID: %d state: %d \n", tsk->pid, tsk->state);
+			}
+		}
+	}
+}
 static unsigned long **find_sys_call_table(void) {
 	unsigned long int offset = PAGE_OFFSET;
 	unsigned long **sct;
@@ -160,11 +209,15 @@ static int __init interceptor_start(void) {
 
   /* Store a copy of all the existing functions */
 	ref_sys_cs3013_syscall2 = (void *)sys_call_table[__NR_cs3013_syscall2];
+	ref_sys_cs3013_syscall3 = (void *)sys_call_table[__NR_cs3013_syscall3];
+
 
   /* Replace the existing system calls */
 	disable_page_protection();
 
 	sys_call_table[__NR_cs3013_syscall2] = (unsigned long *)new_sys_cs3013_syscall2;
+	sys_call_table[__NR_cs3013_syscall3] = (unsigned long *)new_sys_cs3013_syscall3;
+
 
 	enable_page_protection();
 
@@ -182,6 +235,8 @@ static void __exit interceptor_end(void) {
   /* Revert all system calls to what they were before we began. */
 	disable_page_protection();
 	sys_call_table[__NR_cs3013_syscall2] = (unsigned long *)ref_sys_cs3013_syscall2;
+	sys_call_table[__NR_cs3013_syscall3] = (unsigned long *)ref_sys_cs3013_syscall3;
+
 	enable_page_protection();
 
 	printk(KERN_INFO "Unloaded interceptor!\n");
