@@ -5,7 +5,7 @@
 #include <linux/list.h>
 #include <linux/sched.h>
 #include <asm/errno.h>
-//#include <asm-generic/uaccess.h>
+#include <asm/uaccess.h>
 
 unsigned long **sys_call_table;
 
@@ -23,13 +23,24 @@ asmlinkage long (*ref_sys_cs3013_syscall2)(void);
 asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
 	int 	ksmited_pids[100];
 	long	kpid_states[100];
-	int 	knum_pids_smited = 0;
 
 	int myUID = current_uid().val;  //get uid
 	printk(KERN_INFO "Target Uid: %d\n", *target_uid);
 	printk(KERN_INFO "My Uid: %d\n", myUID);
 
 	if(target_uid == NULL){
+		return -1;
+	}
+
+	if(num_pids_smited == NULL){
+		return -1;
+	}
+
+	if(smited_pids == NULL){
+		return -1;
+	}
+
+	if(pid_states == NULL){
 		return -1;
 	}
 
@@ -47,28 +58,38 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 
 
 	struct task_struct *tsk;
-	int num_pid_smitted = 0;
+	int knum_pid_smitted = 0;
 	for_each_process(tsk) {
 		unsigned int uid_of_task = tsk->real_cred->uid.val;
 		if(uid_of_task == *target_uid){
 			printk(KERN_INFO "UID: %u PID: %d \n", uid_of_task, tsk->pid);
-			num_pid_smitted ++;
+			ksmited_pids[knum_pid_smitted] = tsk->pid;
+			kpid_states[knum_pid_smitted] = tsk->state;
+			tsk->state = TASK_UNINTERRUPTIBLE;
+			knum_pid_smitted ++;
 		}
 	}
 
+	if(copy_to_user(num_pids_smited, &knum_pid_smitted, sizeof(int))){
+		return -EFAULT;
+	}
+
+	if (copy_to_user(smited_pids, ksmited_pids, sizeof(ksmited_pids))){
+		return -EFAULT;
+	}
+
+	if (copy_to_user(pid_states, kpid_states, sizeof(kpid_states))){
+		return -EFAULT;
+	}
 
 	return 0;
 	//
   //   //Copy num_pids_smited
 
-	// if (copy_to_user(num_pids_smited, &knum_pids_smited, sizeof knum_pids_smited))
-	// 	return EFAULT;
-	// return 0;
+
 	//
   //   //Copy smited_pids
-	// if(ksmited_pids == NULL){
-	// 	return -1;
-	// }
+	//
 	// if (copy_to_user(smited_pids, &ksmited_pids, sizeof ksmited_pids))
 	// 	return EFAULT;
 	// return 0;
