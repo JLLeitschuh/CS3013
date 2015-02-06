@@ -1,0 +1,14 @@
+smitten@jonathan-VirtualBox:/home/jonathan/Desktop/cs3013/project2/testPart2$ time ./longLoop
+I'm going to run for a while.... get over it
+I'm done
+
+real	0m19.187s
+user	0m18.260s
+sys	0m0.000s
+smitten@jonathan-VirtualBox:/home/jonathan/Desktop/cs3013/project2/testPart2$ time ./longLoop
+I'm going to run for a while.... get over it
+I'm done
+
+real	38m7.487s
+user	0m18.408s
+sys	0m0.008s

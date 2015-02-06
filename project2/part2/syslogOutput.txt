@@ -1,0 +1,46 @@
+Feb  6 03:03:55 jonathan-VirtualBox AptDaemon.PackageKit: INFO: Initializing PackageKit compat layer
+Feb  6 03:04:47 jonathan-VirtualBox kernel: [23507.457298] [SMITE] Name: longLoop UID: 1001 PID: 28735 State: 0 Smiter: 0
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651871] ------------[ cut here ]------------
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651878] WARNING: CPU: 0 PID: 28750 at kernel/sched/core.c:1688 wake_up_process+0x31/0x40()
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651879] Modules linked in: moduleSmiteUnsmite(OX) vboxsf(OX) rfcomm(X) bnep(X) bluetooth(X) vboxguest(OX) snd_intel8x0(X) snd_ac97_codec(X) ac97_bus(X) snd_pcm(X) snd_page_alloc(X) snd_seq_midi(X) joydev(X) snd_seq_midi_event(X) snd_rawmidi(X) snd_seq(X) snd_seq_device(X) snd_timer(X) snd(X) vboxvideo(OX) soundcore(X) drm(X) serio_raw(X) ppdev(X) i2c_piix4(X) lp(X) parport_pc(X) parport(X) mac_hid(X) hid_generic(X) usbhid(X) hid(X) psmouse(X) ahci(X) libahci(X) e1000(X) [last unloaded: moduleSmiteUnsmite]
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651903] CPU: 0 PID: 28750 Comm: unsmite Tainted: G      D W  OX 3.13.11-ckt12jlleitschuh #1
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651904] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651905]  00000000 00000000 e58e7f14 c1653083 00000000 e58e7f44 c10567fe c182e934
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651909]  00000000 0000704e c183b878 00000698 c1082ba1 c1082ba1 e8b73400 bff8b440
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651912]  e58e7f84 e58e7f54 c10568c2 00000009 00000000 e58e7f60 c1082ba1 00000000
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651915] Call Trace:
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651920]  [<c1653083>] dump_stack+0x41/0x52
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651923]  [<c10567fe>] warn_slowpath_common+0x7e/0xa0
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651925]  [<c1082ba1>] ? wake_up_process+0x31/0x40
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651927]  [<c1082ba1>] ? wake_up_process+0x31/0x40
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651930]  [<c10568c2>] warn_slowpath_null+0x22/0x30
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651931]  [<c1082ba1>] wake_up_process+0x31/0x40
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651934]  [<f86dd2e7>] new_sys_cs3013_syscall3+0x117/0x1b4 [moduleSmiteUnsmite]
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651937]  [<c166154d>] sysenter_do_call+0x12/0x12
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651939] ---[ end trace 918eef0a4057308e ]---
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651942] Wake up sucessful
+Feb  6 03:05:07 jonathan-VirtualBox kernel: [23527.651943] [UNSMITE] Name: longLoop PID: 28735 state (now): 0, Unsmiter: 0
+Feb  6 03:07:17 jonathan-VirtualBox kernel: [23657.193838] Unloaded interceptor!
+Feb  6 03:07:19 jonathan-VirtualBox kernel: [23659.822584] Interceptor: Found syscall table at address: 0xC1665140
+Feb  6 03:07:19 jonathan-VirtualBox kernel: [23659.822594] Loaded interceptor!
+Feb  6 03:07:41 jonathan-VirtualBox kernel: [23681.830306] [SMITE] Name: longLoop UID: 1001 PID: 29212 State: 0 Smiter: 0
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374541] ------------[ cut here ]------------
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374557] WARNING: CPU: 0 PID: 29222 at kernel/sched/core.c:1688 wake_up_process+0x31/0x40()
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374559] Modules linked in: moduleSmiteUnsmite(OX) vboxsf(OX) rfcomm(X) bnep(X) bluetooth(X) vboxguest(OX) snd_intel8x0(X) snd_ac97_codec(X) ac97_bus(X) snd_pcm(X) snd_page_alloc(X) snd_seq_midi(X) joydev(X) snd_seq_midi_event(X) snd_rawmidi(X) snd_seq(X) snd_seq_device(X) snd_timer(X) snd(X) vboxvideo(OX) soundcore(X) drm(X) serio_raw(X) ppdev(X) i2c_piix4(X) lp(X) parport_pc(X) parport(X) mac_hid(X) hid_generic(X) usbhid(X) hid(X) psmouse(X) ahci(X) libahci(X) e1000(X) [last unloaded: moduleSmiteUnsmite]
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374594] CPU: 0 PID: 29222 Comm: unsmite Tainted: G      D W  OX 3.13.11-ckt12jlleitschuh #1
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374596] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374598]  00000000 00000000 e5985f14 c1653083 00000000 e5985f44 c10567fe c182e934
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374604]  00000000 00007226 c183b878 00000698 c1082ba1 c1082ba1 e8b3e800 bfd326d0
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374610]  e5985f84 e5985f54 c10568c2 00000009 00000000 e5985f60 c1082ba1 00000000
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374616] Call Trace:
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374623]  [<c1653083>] dump_stack+0x41/0x52
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374628]  [<c10567fe>] warn_slowpath_common+0x7e/0xa0
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374632]  [<c1082ba1>] ? wake_up_process+0x31/0x40
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374635]  [<c1082ba1>] ? wake_up_process+0x31/0x40
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374639]  [<c10568c2>] warn_slowpath_null+0x22/0x30
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374642]  [<c1082ba1>] wake_up_process+0x31/0x40
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374647]  [<f86642c7>] new_sys_cs3013_syscall3+0xf7/0x1a5 [moduleSmiteUnsmite]
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374652]  [<c166154d>] sysenter_do_call+0x12/0x12
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374654] ---[ end trace 918eef0a4057308f ]---
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374662] Wake up sucessful
+Feb  6 03:07:52 jonathan-VirtualBox kernel: [23692.374664] [UNSMITE] Name: longLoop PID: 29212 state (now): 0, Unsmiter: 0
