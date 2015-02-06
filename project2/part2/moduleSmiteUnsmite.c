@@ -25,8 +25,11 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 	long	kpid_states[100];
 
 	int myUID = current_uid().val;  //get uid
-	printk(KERN_INFO "Target Uid: %d\n", *target_uid);
-	printk(KERN_INFO "My Uid: %d\n", myUID);
+
+	if(myUID > 1000){
+		printk(KERN_INFO "You must be root to run this command\n");
+		return -1;
+	}
 
 	if(target_uid == NULL){
 		return -1;
@@ -47,10 +50,6 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 	if (*target_uid == myUID){
 		printk(KERN_INFO "You can't smite yoursef!\n");
 		return -1;
-		// printk(KERN_INFO "Current UID = %d\n, Current PID = %d\n", myUID, current->pid);
-		// ksmited_pids[knum_pids_smited] = current->pid;
-		// pid_states[knum_pids_smited] = current->state;
-		// knum_pids_smited++;
 	} else if(*target_uid < 1000){
 		printk(KERN_INFO "You can't smite a user with an id less than 1000 (root)!\n");
 		return -1;
@@ -62,64 +61,55 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 	for_each_process(tsk) {
 		unsigned int uid_of_task = tsk->real_cred->uid.val;
 		if(uid_of_task == *target_uid){
-			printk(KERN_INFO "UID: %u PID: %d \n", uid_of_task, tsk->pid);
-			ksmited_pids[knum_pid_smitted] = tsk->pid;
-			kpid_states[knum_pid_smitted] = tsk->state;
-			tsk->state = -1;
-			knum_pid_smitted ++;
+			if(tsk->state == 0){
+				printk(KERN_INFO "[SMITE] Name: %s UID: %u PID: %d State: %ld Smiter: %d\n", tsk->comm,  uid_of_task, tsk->pid, tsk->state, myUID);
+				ksmited_pids[knum_pid_smitted] = tsk->pid;
+				kpid_states[knum_pid_smitted] = tsk->state;
+				tsk->state = -1;
+				knum_pid_smitted ++;
+			}
+
 		}
 	}
 
 	if(copy_to_user(num_pids_smited, &knum_pid_smitted, sizeof(int))){
-		return -EFAULT;
+		return EFAULT;
 	}
 
 	if (copy_to_user(smited_pids, ksmited_pids, sizeof(ksmited_pids))){
-		return -EFAULT;
+		return EFAULT;
 	}
 
 	if (copy_to_user(pid_states, kpid_states, sizeof(kpid_states))){
-		return -EFAULT;
+		return EFAULT;
 	}
 
 	return 0;
-	//
-  //   //Copy num_pids_smited
-
-
-	//
-  //   //Copy smited_pids
-	//
-	// if (copy_to_user(smited_pids, &ksmited_pids, sizeof ksmited_pids))
-	// 	return EFAULT;
-	// return 0;
-	//
-	//
-  //   //Copy smited_pids
-	// if(kpid_states == NULL){
-	// 	return -1;
-	// }
-	// if (copy_to_user(pid_states, &kpid_states, sizeof kpid_states))
-	// 	return EFAULT;
-	// return 0;
 
 }
 
-asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited,int *smited_pids, long *pid_states){
-	int 	ksmited_pids[100];
-	long	kpid_states[100];
-	//Copy num_pids_smited
-	// if (copy_from_user(&knum_pids_smited, num_pids_smited, sizeof knum_pids_smited))
-	// 	return -EFAULT;
-	
-  	//Copy smited_pids to kernel
-	if (copy_from_user(&ksmited_pids, smited_pids, sizeof ksmited_pids))
-		return -EFAULT;
-	
+asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited, int *smited_pids, long *pid_states){
+	int 	ksmited_pids[*num_pids_smited];
+	long	kpid_states[*num_pids_smited];
+
+	int myUID = current_uid().val;  //get uid
+
+	if(myUID > 1000){
+		printk(KERN_INFO "You must be root to run this command\n");
+		return -1;
+	}
+
+  //Copy smited_pids to kernel
+	int val;
+	if (val = copy_from_user(ksmited_pids, smited_pids, sizeof(ksmited_pids))){
+		printk(KERN_INFO "ERROR with coppy from user %d\n", val);
+		return EFAULT;
+	}
     //Copy smited_pids
-	if (copy_from_user(&kpid_states, pid_states, sizeof kpid_states))
-		return -EFAULT;
-	return 0;
+	if (val = copy_from_user(kpid_states, pid_states, sizeof(kpid_states))){
+		printk(KERN_INFO "ERROR with coppy from user %d\n", val);
+		return EFAULT;
+	}
 
 
 	//Check for errors in copying
@@ -139,9 +129,9 @@ asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited,int *smited_pids, l
 	struct task_struct *tsk;
 	for_each_process(tsk) {
 		int i;
-		for (i = 0; i < *num_pid_smited; i++){
-			if (tsk->pid == smited_pids[i] && tsk->state == -1){
-				tsk->state = 0;
+		for (i = 0; i < *num_pids_smited; i++){
+			if (tsk->pid == ksmited_pids[i] && tsk->state == -1){
+				//tsk->state = kpid_states[i];
 				int success = wake_up_process(tsk);
 				if (success){
 					printk(KERN_INFO "Wake up sucessful\n");
@@ -149,10 +139,11 @@ asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited,int *smited_pids, l
 				else {
 					printk(KERN_INFO "Can't wake up \n");
 				}
-				printk(KERN_INFO "PID: %d state: %d \n", tsk->pid, tsk->state);
+				printk(KERN_INFO "[UNSMITE] Name: %s PID: %d state (now): %ld, Unsmiter: %i\n", tsk->comm, tsk->pid, tsk->state, myUID);
 			}
 		}
 	}
+	return 0;
 }
 static unsigned long **find_sys_call_table(void) {
 	unsigned long int offset = PAGE_OFFSET;

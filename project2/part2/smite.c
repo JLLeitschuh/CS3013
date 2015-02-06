@@ -46,7 +46,6 @@ int main(int argc, char* argv[]){
 
   smiteUser(target_uid, &num_pids_smited, smited_ids, pid_states);
 
-  printf("Proccess Total: %i\n", num_pids_smited);
   int i;
   for(i = 0; i < num_pids_smited; i++){
     printf("%i %lu\n", smited_ids[i], pid_states[i]);
