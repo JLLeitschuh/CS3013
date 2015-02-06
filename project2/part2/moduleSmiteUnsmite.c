@@ -1,69 +1,88 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/syscalls.h>
-#include <linux/asm-generic/current.h>
+#include <asm/current.h>
 #include <linux/list.h>
-#include <linux/types.h>
 #include <linux/sched.h>
-#include <linux/init.h>
 #include <asm/errno.h>
-//#include <asm/current.h>
-// #include <asm/cputime.h>
-// #include <linux/time.h>
-// #include <asm/uaccess.h>
+//#include <asm-generic/uaccess.h>
 
 unsigned long **sys_call_table;
 
 asmlinkage long (*ref_sys_cs3013_syscall2)(void);
 
 
-// *target_uid is a pointer to an unsigned short, 
-// *num_pids_smited is a pointer to an integer, 
-// *smited_pids is a reference to an integer array of size 100 
-// and *pid_states is a reference to a long array of size 100. 
+// *target_uid is a pointer to an unsigned short,
+// *num_pids_smited is a pointer to an integer,
+// *smited_pids is a reference to an integer array of size 100
+// and *pid_states is a reference to a long array of size 100.
 
-// Each of hese variables must have their memory allocated in user space before invoking the system call, otherwise an error will be returned. 
+// Each of hese variables must have their memory allocated in user space before invoking the system call, otherwise an error will be returned.
 // The system call returns zero if successful or an error indication if not successful.
 
-asmlinkage long new_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
-	struct 	task_struct *task = current;
+asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
+	struct 	task_struct *this_task = current;
+	struct list_head head;
+	struct task_struct *task;
+
 	int 	ksmited_pids[100];
-	long 	kpid_states[100];
+	long	kpid_states[100];
 	int 	knum_pids_smited = 0;
-	
-	int myUID = current_uid();  //get uid
 
-	if (target_uid == myUID){
-		printk(KERN_INFO "Current UID = %d\n, Current PID = %d\n", myUID, current->pid);
-		ksmited_pids[knum_pids_smited] = current->pid;
-		pid_states[knum_pids_smited] = current->state;;
-		knum_pids_smited++;
-	}
+	int myUID = current_uid().val;  //get uid
+	printk(KERN_INFO "Uid: %d\n", *target_uid);
 
-    //Copy num_pids_smited
-	if(knum_pids_smited == NULL){
+	if (*target_uid == myUID){
+		printk(KERN_INFO "You can't smite yoursef!\n");
+		return -1;
+		// printk(KERN_INFO "Current UID = %d\n, Current PID = %d\n", myUID, current->pid);
+		// ksmited_pids[knum_pids_smited] = current->pid;
+		// pid_states[knum_pids_smited] = current->state;
+		// knum_pids_smited++;
+	} else if(*target_uid < 1000){
+		printk(KERN_INFO "You can't smite a user with an id less than 1000 (root)!\n");
 		return -1;
 	}
-	if (copy_to_user(num_pids_smited, &knum_pids_smited, sizeof knum_pids_smited))
-		return EFAULT;
-	return 0;
 
-    //Copy smited_pids
-	if(ksmited_pids == NULL){
-		return -1;
+	//http://www.cs.fsu.edu/~baker/devices/lxr/http/source/linux/include/linux/sched.h#L1218
+	head = this_task->tasks;
+	int loops = 0;
+	list_for_each_entry(task, &head, tasks){
+		//WARNING make sure that you break after some number of iterations or your system will hang
+		printk(KERN_INFO "Value: %d\n", loops);
+		if(loops > 100){
+			break;
+		}
+		loops++;
 	}
-	if (copy_to_user(smited_pids, &ksmited_pids, sizeof ksmited_pids))
-		return EFAULT;
-	return 0;
 
 
-    //Copy smited_pids
-	if(kpid_states == NULL){
-		return -1;
-	}
-	if (copy_to_user(pid_states, &kpid_states, sizeof kpid_states))
-		return EFAULT;
 	return 0;
+	//
+  //   //Copy num_pids_smited
+	// if(knum_pids_smited == NULL){
+	// 	return -1;
+	// }
+	// if (copy_to_user(num_pids_smited, &knum_pids_smited, sizeof knum_pids_smited))
+	// 	return EFAULT;
+	// return 0;
+	//
+  //   //Copy smited_pids
+	// if(ksmited_pids == NULL){
+	// 	return -1;
+	// }
+	// if (copy_to_user(smited_pids, &ksmited_pids, sizeof ksmited_pids))
+	// 	return EFAULT;
+	// return 0;
+	//
+	//
+  //   //Copy smited_pids
+	// if(kpid_states == NULL){
+	// 	return -1;
+	// }
+	// if (copy_to_user(pid_states, &kpid_states, sizeof kpid_states))
+	// 	return EFAULT;
+	// return 0;
 
 }
 
@@ -75,7 +94,7 @@ static unsigned long **find_sys_call_table(void) {
 		sct = (unsigned long **)offset;
 
 		if (sct[__NR_close] == (unsigned long *) sys_close) {
-			printk(KERN_INFO "Interceptor: Found syscall table at address: 0x%02lX",
+			printk(KERN_INFO "Interceptor: Found syscall table at address: 0x%02lX\n",
 				(unsigned long) sct);
 			return sct;
 		}
@@ -106,7 +125,7 @@ static void disable_page_protection(void) {
 
 static void enable_page_protection(void) {
   /*
-   See the above description for cr0. Here, we use an OR to set the 
+   See the above description for cr0. Here, we use an OR to set the
    16th bit to re-enable write protection on the CPU.
   */
    write_cr0 (read_cr0 () | 0x10000);
@@ -115,7 +134,7 @@ static void enable_page_protection(void) {
 static int __init interceptor_start(void) {
   /* Find the system call table */
 	if(!(sys_call_table = find_sys_call_table())) {
-    /* Well, that didn't work. 
+    /* Well, that didn't work.
        Cancel the module loading step. */
 		return -1;
 	}
@@ -131,7 +150,7 @@ static int __init interceptor_start(void) {
 	enable_page_protection();
 
   /* And indicate the load was successful */
-	printk(KERN_INFO "Loaded interceptor!");
+	printk(KERN_INFO "Loaded interceptor!\n");
 
 	return 0;
 }
@@ -146,7 +165,7 @@ static void __exit interceptor_end(void) {
 	sys_call_table[__NR_cs3013_syscall2] = (unsigned long *)ref_sys_cs3013_syscall2;
 	enable_page_protection();
 
-	printk(KERN_INFO "Unloaded interceptor!");
+	printk(KERN_INFO "Unloaded interceptor!\n");
 }
 
 MODULE_LICENSE("GPL");
