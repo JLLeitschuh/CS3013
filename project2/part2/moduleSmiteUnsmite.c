@@ -21,16 +21,17 @@ asmlinkage long (*ref_sys_cs3013_syscall2)(void);
 // The system call returns zero if successful or an error indication if not successful.
 
 asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
-	struct 	task_struct *this_task = current;
-	struct list_head head;
-	struct task_struct *task;
-
 	int 	ksmited_pids[100];
 	long	kpid_states[100];
 	int 	knum_pids_smited = 0;
 
 	int myUID = current_uid().val;  //get uid
-	printk(KERN_INFO "Uid: %d\n", *target_uid);
+	printk(KERN_INFO "Target Uid: %d\n", *target_uid);
+	printk(KERN_INFO "My Uid: %d\n", myUID);
+
+	if(target_uid == NULL){
+		return -1;
+	}
 
 	if (*target_uid == myUID){
 		printk(KERN_INFO "You can't smite yoursef!\n");
@@ -44,25 +45,22 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 		return -1;
 	}
 
-	//http://www.cs.fsu.edu/~baker/devices/lxr/http/source/linux/include/linux/sched.h#L1218
-	head = this_task->tasks;
-	int loops = 0;
-	list_for_each_entry(task, &head, tasks){
-		//WARNING make sure that you break after some number of iterations or your system will hang
-		printk(KERN_INFO "Value: %d\n", loops);
-		if(loops > 100){
-			break;
+
+	struct task_struct *tsk;
+	int num_pid_smitted = 0;
+	for_each_process(tsk) {
+		unsigned int uid_of_task = tsk->real_cred->uid.val;
+		if(uid_of_task == *target_uid){
+			printk(KERN_INFO "UID: %u PID: %d \n", uid_of_task, tsk->pid);
+			num_pid_smitted ++;
 		}
-		loops++;
 	}
 
 
 	return 0;
 	//
   //   //Copy num_pids_smited
-	// if(knum_pids_smited == NULL){
-	// 	return -1;
-	// }
+
 	// if (copy_to_user(num_pids_smited, &knum_pids_smited, sizeof knum_pids_smited))
 	// 	return EFAULT;
 	// return 0;
