@@ -1,3 +1,13 @@
+/*
+CS 3013 Project 2 Part 2 
+Team 48
+Alexandra Bittle - albittle
+Jonathan Leitschuh - jlleitchuh
+Long Nguyen - lhnguyen
+
+moduleSmuteUnsmite.c - This file handles the kernel side smite and unsmite code
+*/
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/syscalls.h>
@@ -13,10 +23,10 @@ unsigned long **sys_call_table;
 asmlinkage long (*ref_sys_cs3013_syscall2)(void);
 asmlinkage long (*ref_sys_cs3013_syscall3)(void);
 
-	/*Smite kernel call*/
+	/* New definition of new_sys_cs3013_syscall2 to be used for smiting a user */
 asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pids_smited, int *smited_pids, long *pid_states) {
-	int 	ksmited_pids[MAXLENGTH];
-	long	kpid_states[MAXLENGTH];
+	int 	ksmited_pids[MAXLENGTH]; //Save an array to keep the pids which have been altered
+	long	kpid_states[MAXLENGTH];  //An array to save the previous pid states before smiting
 
 	int myUID = current_uid().val;  /*get uid*/
 
@@ -64,8 +74,8 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 					printk(KERN_INFO "[SMITE] Name: %s UID: %u PID: %d State: %ld Smiter: %d\n", tsk->comm,  uid_of_task, tsk->pid, tsk->state, myUID);
 					ksmited_pids[knum_pid_smitted] = tsk->pid;
 					tsk->state = TASK_UNINTERRUPTIBLE;
-					kpid_states[knum_pid_smitted] = tsk->state; /*Smite it before putting it in the array*/
-					knum_pid_smitted ++;
+					kpid_states[knum_pid_smitted] = tsk->state; /*Smite the process before saving its state*/
+					knum_pid_smitted++; //Add  to the counter to keep track of the number of pids which have been smited.
 				} else break;
 			}
 		}
@@ -88,7 +98,7 @@ asmlinkage long new_sys_cs3013_syscall2(unsigned short *target_uid, int *num_pid
 
 }
 
-/* Unsmite kernel call*/
+/* New definition of new_sys_cs3013_syscall3 to be used as unsmite*/
 asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited, int *smited_pids, long *pid_states){
 	int 	ksmited_pids[*num_pids_smited];
 	long	kpid_states[*num_pids_smited];
@@ -128,13 +138,13 @@ asmlinkage long new_sys_cs3013_syscall3(int *num_pids_smited, int *smited_pids, 
 	}
 
 	/* Unsmite the processes from the array */
-	/* Iterate through each process and unsmite smited processes from the array */
+	/* Iterate through each process and unsmite smited processes*/
 	struct task_struct *tsk;
 	for_each_process(tsk) {
 		int i;
 		for (i = 0; i < *num_pids_smited; i++){
 			if (tsk->pid == ksmited_pids[i] && tsk->state != TASK_RUNNING){
-				int success = wake_up_process(tsk);
+				int success = wake_up_process(tsk); //Wake up the process. suceess will be 1 if this was successful, 0 if not. 
 				if (success){
 					printk(KERN_INFO "Wake up sucessful\n");
 				}
