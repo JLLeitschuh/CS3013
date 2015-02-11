@@ -4,97 +4,67 @@
 
 void *secretThread(void *input){
   printf("Running secret thread\n");
+  SecurityLevel level;
+
+ // while(1){
+    //enterCluster(level);
+    //We are now running in the cluster so do the job
+    //Delay here for random time between .25 and 2 seconds
+    //Leave cluster
+    //exitCluster(level);
+    //Another delay for some random ammount of time
+//  }
+
 }
 
 
 int main(){
-  sem_init (doorsign, 0, 3);
-
-  pthread_t secretThread1;
-
-  if(pthread_create(&secretThread1, NULL, secretThread, NULL)) {
-    fprintf(stderr, "Error creating thread\n");
-    return 1;
+  const int threadCount = 20;
+  pthread_t secretThreads[threadCount];
+  int i;
+  for(i = 0; i < threadCount; i++){
+	  if(pthread_create(&(secretThreads[i]), NULL, secretThread, NULL)) {
+	    fprintf(stderr, "Error creating thread\n");
+	    return 1;
+	  }
   }
   printf("Running main thread\n");
 
-  if(pthread_join(secretThread1, NULL)) {
-    fprintf(stderr, "Error joining thread\n");
-    return 2;
+  //int i;
+  for(i = 0; i < threadCount; i++){
+	  if(pthread_join(secretThreads[i], NULL)) {
+	    fprintf(stderr, "Error joining thread\n");
+	    return 2;
+	  }
   }
 
-  void* individual(void* arg)
-  {
-    job* me = (job*)(arg);
+  //create all 20 threads: 8 unclassified, 6 secret, and 6 top secret 
+/*	job job1;
+	job job2;
+	job job3;
+	job job4;
+	job job5;
+	job job6;
+	job job7;
+	job job8;
+	job job9;
+	job job10;
+	job job11;
+	job job12;
+	job job13;
+	job job14;
+	job job15;
+	job job16;
+	job job17;
+	job job18;
+	job job19;
+	job job20;
 
-    while(1)
-    {
-      int running = rand();
-      int hold_it = rand();
-      if (running <= 0)
-      {
-        running = -running + 1;
-      }
-      if (hold_it <= 0)
-      {
-        hold_it = -hold_it + 1;
-      }
+	job1.SecurityLevel = TOP_SECRET
+	job2.SecurityLevel = TOP_SECRET
+	job3.SecurityLevel = TOP_SECRET */
 
-      usleep(hold_it);
-
-      enter(me -> g); 
-      usleep(running);
-      leave();
-      trips_count++;
-    }
-
-    printf("\n╔═══════════════\n║id: %i\n║sex: %s\n║\tstay:%i\n╚═══════════════\n", 
-      me -> id, me -> p, me -> stay);
-
-    free(me);
-  }
-
-  int main(int argc, char** argv)
-  {
-    srand(time(NULL));
-
-    pthread_mutex_init(&doorsign, NULL);
-    printf("initialized\n");
-
-    for (i = 0; i < 20; i++)
-    {
-      job* i = (job*)(malloc(sizeof(job)));
-
-      if (i == (13||11||18||4||19||7||16||2)) i-> p = UNCLASSIFIED;
-      else if (i == (12||5||3||20||9||15) i -> p = TOP_SECRET;
-        else i-> p = SECRET;
-
-        i -> id = random();
-
-        switch ( i -> p ) {
-          case SECRET:
-          i-> stay = 2;
-          break;
-          case TOP_SECRET:
-          i->stay = 3;
-          break;
-          default:
-          i->stay =1;
-          break;
-        }
-      }
-    // pthread_create(all_threads+arg_n_users, NULL, individual, i);
-    }
-
-    while(backup_n_user >= 0)
-    {
-      pthread_join(*(all_threads+backup_n_user), NULL);
-      backup_n_user --;
-    }
-
-    finalize();
-    return 0;
-  }
 
   return 0;
 }
+
