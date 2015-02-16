@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-lpthread -std=c99
-DEPS = Error.h Jobs.h SecurityLevel.h
-OBJ = cluster.o Error.o Jobs.o
+CFLAGS=-lpthread -std=gnu99
+DEPS = Error.h Jobs.h SecurityLevel.h Random.h
+OBJ = cluster.o Error.o Jobs.o Random.o
 
 all: cluster
 
