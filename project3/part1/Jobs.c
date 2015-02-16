@@ -190,21 +190,23 @@ void printJobListStats(){
 
 void *jobThreadMethod(void *input){
   Job *jobData = (Job*)input;
+  //Down the mutex the first time so that the next time it is downed it will block
+  pthread_mutex_lock(&(jobData->threadLock));
   long randomWaitTime = getRandomBetween(500000, 2000000);
   printf("Running Job %d Thread. Security: %d Will delay for %ld us\n", jobData->jobNumber, jobData->level, randomWaitTime);
-  //while(true){
+  //Iterate infinitely
+  while(true){
     usleep(randomWaitTime);
     //Adds this job to the list of jobs waiting to run
     addJobToList(jobData);
 
     //Now we down our mutex twice so we are in the waiting state
     pthread_mutex_lock(&(jobData->threadLock));
-    pthread_mutex_lock(&(jobData->threadLock));
     //If we are here we have entered the cluster! YEAY!
     long randomRunTime = getRandomBetween(500000, 2000000);
     usleep(randomRunTime);
     exitCluster(jobData);
-  //}
+  }
 
   printf("Job %d is complete.\n", jobData->jobNumber);
   return 0;

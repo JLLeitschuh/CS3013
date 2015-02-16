@@ -82,7 +82,7 @@ void enterCluster(Job *job){
 }
 
 void exitCluster(Job *job){
-  printf("[EXITING CLUSTER] Job Num: %d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster );
+  printf("[EXITING  CLUSTER] Job Num: %d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster );
   pthread_mutex_lock(&clusterMutex);
   if(cluster[job->inCluster] != job->level){
     errorWithContext("Someone changed the cluster level while another job was in that half\n");
