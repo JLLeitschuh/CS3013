@@ -101,7 +101,7 @@ int _removeFirstJobType(Job **returnJob, Job *element, SecurityLevel level){
   //printf("Iterating\n");
   //If this element is the tail then we have failed
   if(element->isTail){
-    errorWithContext("Reached end of list\n");
+    //errorWithContext("Reached end of list\n");
     return 1;
   }
 
@@ -206,6 +206,7 @@ void *jobThreadMethod(void *input){
     long randomRunTime = getRandomBetween(500000, 2000000);
     usleep(randomRunTime);
     exitCluster(jobData);
+    randomWaitTime = getRandomBetween(4000000, 9000000);
   }
 
   printf("Job %d is complete.\n", jobData->jobNumber);

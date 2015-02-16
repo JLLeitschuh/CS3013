@@ -75,15 +75,15 @@ void enterCluster(Job *job){
     errorWithContext("[Mistakes were made!] Tried to enter the cluster but no spaces were available\n");
     exit(1);
   }
+  printf("[ENTERING CLUSTER] Job Num: %2d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster );
   pthread_mutex_unlock(&clusterMutex);
   //Allow the job to enter the cluster
   pthread_mutex_unlock(&(job->threadLock));
-  printf("[ENTERING CLUSTER] Job Num: %d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster );
 }
 
 void exitCluster(Job *job){
-  printf("[EXITING  CLUSTER] Job Num: %d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster );
   pthread_mutex_lock(&clusterMutex);
+  printf("[EXITING  CLUSTER] Job Num: %2d, Security Level: %d, Cluster Num: %d\n", job->jobNumber,job->level, job->inCluster);
   if(cluster[job->inCluster] != job->level){
     errorWithContext("Someone changed the cluster level while another job was in that half\n");
     exit(1);
@@ -106,6 +106,7 @@ void manageCluster(){
 
     //If there are three TS waiting
     if(isThreeTSWaiting()){
+      if(isClusterUnsecured()) continue; //The cluster is unsecure
       Job *ts_job = NULL;
       if(removeFirstJobType(&ts_job, TOP_SECRET)){
         errorWithContext("There was no TS job to retrive\n");
