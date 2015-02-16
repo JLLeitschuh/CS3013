@@ -1,9 +1,12 @@
 #ifndef _JOBS_H_
 #define _JOBS_H_
 
+
+
 #include "SecurityLevel.h"
 #include "Error.h"
 #include "Random.h"
+#include "Boolean.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -15,6 +18,7 @@
 
 typedef struct Job {
   unsigned int jobNumber;
+  int inCluster; //Stores the cluster that the job is in -1 if not
   SecurityLevel level;
   pthread_mutex_t threadLock;
   pthread_t jobThread;
@@ -22,15 +26,24 @@ typedef struct Job {
   struct Job *nextJob;
 } Job;
 
+//This is declared here because of circular dependency
+#include "ClusterManager.h"
+
 int initJobStuff();
 
-int removeFirstJob(Job **returnJob, SecurityLevel level);
+int removeFirstJob(Job ** returnJob);
+
+int removeFirstJobType(Job **returnJob, SecurityLevel level);
+
+int removeSimilarJob(Job **returnJob, SecurityLevel level);
 
 void addJobToList(Job *job);
 
-void getJobListStats(int *us_count, int *s_count, int *ts_count);
+void getJobListCountStats(int *us_count, int *s_count, int *ts_count);
 
 void *jobThreadMethod(void *input);
+
+Bool isJobInQueue();
 
 int initJobStruct(Job *job, SecurityLevel level);
 

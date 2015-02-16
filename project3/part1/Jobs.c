@@ -17,13 +17,13 @@ int initJobStuff(){
 //Warning! This is not thread safe. Make sure you are using a lock!
 void _addJob(Job *toJob, Job *addJob){
   if(toJob->isTail){
-    printf("Adding Job\n");
+    //printf("Adding Job\n");
     toJob->isTail = 0;
     addJob->isTail = 1;
     toJob->nextJob = addJob;
     return;
   } else {
-    printf("Recursing\n");
+    //printf("Recursing\n");
     _addJob(toJob->nextJob, addJob);
     return;
   }
@@ -36,8 +36,69 @@ void addJobToList(Job *job){
   pthread_mutex_unlock(&jobListMutex);
 }
 
-int _removeFirstJob(Job **returnJob, Job *element, SecurityLevel level){
-  printf("Iterating\n");
+int removeFirstJob(Job ** returnJob){
+  int returnValue = 0;
+  if(jobListStart->isTail) return 1;
+  pthread_mutex_lock(&jobListMutex);
+  *returnJob = jobListStart->nextJob;
+  if(jobListStart->nextJob->isTail){
+    jobListStart->nextJob = NULL;
+    jobListStart->isTail = true;
+  } else {
+    jobListStart->nextJob = (*returnJob)->nextJob;
+    (*returnJob)->nextJob = NULL;
+  }
+  pthread_mutex_unlock(&jobListMutex);
+  return returnValue;
+}
+
+/*
+ * Removes a job that can run in the cluster with the matching job.
+ * If TS or S will find the one with more jobs waiting and return that type
+ * If it is a tie then will retrive the level matching
+ */
+int removeSimilarJob(Job **returnJob, SecurityLevel level){
+  if(level == NONE) {
+    errorWithContext("Invalid level");
+    return 1; //Invalid usage
+  }
+  int us_count = 0;
+  int s_count = 0;
+  int ts_count = 0;
+  //Get the stats for comparison
+  getJobListCountStats(&us_count, &s_count, &ts_count);
+
+  if(level == UNCLASSIFIED){ //Why are you using this method then? But whatever...
+    if(us_count > 0){
+      return removeFirstJobType(returnJob, level);
+    } else {
+      return 1;
+    }
+  } else { // Requesting a secured job
+    if(s_count > ts_count){
+      return removeFirstJobType(returnJob, SECRET);
+    } else if(s_count < ts_count){
+      return removeFirstJobType(returnJob, TOP_SECRET);
+    } else { // They are equal
+      if(ts_count == 0) return 1; // There is no job to retive
+      return removeFirstJobType(returnJob, level);
+    }
+  }
+}
+
+/*
+* Returns true if there is a job in the queue
+*/
+Bool isJobInQueue(){
+  int u_count = 0, s_count = 0, ts_count = 0;
+  getJobListCountStats(&u_count, &s_count, &ts_count);
+  return (u_count > 0 || s_count > 0 || ts_count > 0);
+}
+
+
+
+int _removeFirstJobType(Job **returnJob, Job *element, SecurityLevel level){
+  //printf("Iterating\n");
   //If this element is the tail then we have failed
   if(element->isTail){
     errorWithContext("Reached end of list\n");
@@ -46,7 +107,6 @@ int _removeFirstJob(Job **returnJob, Job *element, SecurityLevel level){
 
   //If the next element has the level we want to return
   if( element->nextJob->level == level){
-    printf("I'm here\n");
     *returnJob = element->nextJob;
     //If the next job is the last element of the list
     if((*returnJob)->isTail){
@@ -57,11 +117,12 @@ int _removeFirstJob(Job **returnJob, Job *element, SecurityLevel level){
       (*returnJob)->isTail = 0;
     }
   } else { //The next element is not the one we want
-    return _removeFirstJob(returnJob, element->nextJob, level);
+    return _removeFirstJobType(returnJob, element->nextJob, level);
   }
   //If we reach this time we sucseeded
   return 0;
 }
+
 /*
  * Removes the first job of a given type from the list
  * @param returnJob where to return the job to
@@ -69,11 +130,12 @@ int _removeFirstJob(Job **returnJob, Job *element, SecurityLevel level){
  * return  0 if sucsessful, 1 if failure
  *         failure can occur if the requested level job is not available
  */
-int removeFirstJob(Job **returnJob, SecurityLevel level){
+int removeFirstJobType(Job **returnJob, SecurityLevel level){
+  //printf("Remove first job\n");
   if(level == NONE) return 1;
   int returnValue = 0;
   pthread_mutex_lock(&jobListMutex);
-  returnValue = _removeFirstJob(returnJob, jobListStart, level);
+  returnValue = _removeFirstJobType(returnJob, jobListStart, level);
   pthread_mutex_unlock(&jobListMutex);
   return returnValue;
 }
@@ -82,7 +144,7 @@ int removeFirstJob(Job **returnJob, SecurityLevel level){
  * Recusrive function to calculate the stats of the linked list
  * NOT THREAD SAFE. MUST USE LOCKS ARROUND IT!
  */
-void _getJobListStats(Job *element, int *us_count, int *s_count, int *ts_count){
+void _getJobListCountStats(Job *element, int *us_count, int *s_count, int *ts_count){
   //Note: the paranthesees arround the pointer dereference are nessasary because otherwise you will be incrementing the pointer not the value
   switch(element->level){
     case UNCLASSIFIED:
@@ -100,18 +162,18 @@ void _getJobListStats(Job *element, int *us_count, int *s_count, int *ts_count){
   }
   //If this is a tail element then we need to stop recursing
   if(!element->isTail){
-    _getJobListStats(element->nextJob, us_count, s_count, ts_count);
+    _getJobListCountStats(element->nextJob, us_count, s_count, ts_count);
   }
 }
 
-void getJobListStats(int *us_count, int *s_count, int *ts_count){
+void getJobListCountStats(int *us_count, int *s_count, int *ts_count){
   *us_count = 0;
   *s_count = 0;
   *ts_count = 0;
   //We need the lock because we don't want the list changing out from under us
   pthread_mutex_lock(&jobListMutex);
   if(!jobListStart->isTail){ //If the list only includes the jobListStart
-    _getJobListStats(jobListStart->nextJob, us_count, s_count, ts_count);
+    _getJobListCountStats(jobListStart->nextJob, us_count, s_count, ts_count);
   }
   pthread_mutex_unlock(&jobListMutex);
 }
@@ -122,19 +184,29 @@ void printJobListStats(){
   int s_count  =0;
   int ts_count =0;
   //Get the stats
-  getJobListStats(&us_count, &s_count, &ts_count);
+  getJobListCountStats(&us_count, &s_count, &ts_count);
   printf("[Count] US: %d, S: %d, TS: %d\n", us_count, s_count, ts_count);
 }
-
 
 void *jobThreadMethod(void *input){
   Job *jobData = (Job*)input;
   long randomWaitTime = getRandomBetween(500000, 2000000);
-  printf("Running Job Thread. Security: %d Will delay for %ld us\n", jobData->level, randomWaitTime);
-  usleep(randomWaitTime);
-  addJobToList(jobData);
-  
+  printf("Running Job %d Thread. Security: %d Will delay for %ld us\n", jobData->jobNumber, jobData->level, randomWaitTime);
+  //while(true){
+    usleep(randomWaitTime);
+    //Adds this job to the list of jobs waiting to run
+    addJobToList(jobData);
 
+    //Now we down our mutex twice so we are in the waiting state
+    pthread_mutex_lock(&(jobData->threadLock));
+    pthread_mutex_lock(&(jobData->threadLock));
+    //If we are here we have entered the cluster! YEAY!
+    long randomRunTime = getRandomBetween(500000, 2000000);
+    usleep(randomRunTime);
+    exitCluster(jobData);
+  //}
+
+  printf("Job %d is complete.\n", jobData->jobNumber);
   return 0;
 }
 
@@ -147,6 +219,7 @@ int initJobStruct(Job *job, SecurityLevel level){
   job->level = level;
   //By default this element is a tail element
   job->isTail = 1;
+  job->inCluster = -1;
   job->nextJob =NULL;
 
   initCount++;
