@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-lpthread -std=gnu99
-DEPS = Vehicles.h Boolean.h Error.h
-OBJ = intersection.o Vehicles.o Error.c
+DEPS = car.h Boolean.h Error.h
+OBJ = intersect.o Error.c
 
-all: instersection
+all: intersect
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -12,4 +12,4 @@ instersection: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
-	rm instersection *.o
+	rm intersect *.o
