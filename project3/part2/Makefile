@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lpthread -std=gnu99
+CFLAGS=-lpthread -lrt -std=gnu99
 DEPS = car.h Boolean.h Error.h
 OBJ = intersect.o Error.c
 
