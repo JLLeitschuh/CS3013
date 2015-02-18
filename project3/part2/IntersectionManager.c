@@ -133,26 +133,40 @@ void  unlockIntersection(){
  * return 0 if car has exited the intersection otherwise return 1
  */
  int advanceMeForward(Vehicle *vehicle){
-  //Now unblocked
+   //Now unblocked
+   IntersectionQuadrant *currentQuadrant = vehicle->currentQuadrant;
+   IntersectionQuadrant *nextQuadrant = currentQuadrant->nextQuadrant;
 
-  //blocks on the next intersection quadrant 'occupied' semaphore (vehicle should know what quadrant it's in)
+   //blocks on the next intersection quadrant 'occupied' semaphore (vehicle should know what quadrant it's in)
+   sem_wait(&(nextQuadrant->occupied));
 
 
+   //Now inside the next intersection quadrant
+   lockIntersection(); //Do this here to prevent deadlocks
+   //Now release the semaphore for the quadrant you were previously in.
+   sem_post(&(currentQuadrant->occupied));
 
-  //Now inside the next intersection quadrant
-  lockIntersection(); //Do this here to prevent deadlocks
-  //Now release the semaphore for the quadrant you were previously in.
+   unlockIntersection(); //Do this here to prevent deadlocks
 
-  unlockIntersection(); //Do this here to prevent deadlocks
+   //Update the vehicles "current intersection"
+   vehicle->currentQuadrant = nextQuadrant;
 
-  //Update the vehicles "current intersection"
+   //if(the vehicle is at its intended exit destination)
+   if(vehicle->currentQuadrant->quadrant == vehicle->desination)
+   {
+     //  then exit the intersection
+     // TODO
 
-  //if(the vehicle is at its intended exit destination)
-  //  then exit the intersection
-  //  announce (printf) that you are leaving the intersection
-  //  and unblock the quadrant
+     //  announce (printf) that you are leaving the intersection
+     printf("Vehicle is leaving the intersection");
 
-  //return
+     //  and unblock the quadrant
+     sem_post(&(currentQuadrant->occupied));
+
+     return 0;
+   }
+
+   return 1;
 }
 
 
@@ -176,10 +190,10 @@ Bool isIntersectionAvailable(){
 
   //check to see if there are less than three cars in the intersection. if so, return true
   if(numOccupied < 3)
-   return TRUE;
+   return true;
 
   //if not, return false
- return FALSE;
+ return false;
 }//alex
 
 
@@ -275,7 +289,7 @@ void manageIntersection(){
 
 
 //determines the number of quadrants a vehicle must travel before exiting the intersection
- int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest){
+int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest){
 
   switch(from)
   {
