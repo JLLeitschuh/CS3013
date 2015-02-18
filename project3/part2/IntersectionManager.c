@@ -1,9 +1,8 @@
-#include <semaphore.h>
-#include "Vehicles.h"
-#include "Boolean.h"
+#include "IntersectionManager.h"
 
 //Print helper functions
-void printCarEntry(*Vehicle this_car , const char* message){
+void printCarEntry(Vehicle* this_car , const char* message){
+  IntersectionQuadrant_t destination = this_car->destination;
   if(this_car -> entryPoint == NORTH){
     if(destination == NORTH_WEST)
       printf("Car #%d %s right from the North going West\n", this_car -> vehicleNumber, message);
@@ -41,7 +40,7 @@ void printCarEntry(*Vehicle this_car , const char* message){
 void *carThread(void *input){ //jobthreadmethod //rmv
   Vehicle *this_vehicle = (Vehicle*) input;
   //Blocking so it won't run out of turn
-  sem_wait(&(this_vehicle->threadLock));
+  sem_wait(&(this_vehicle->queueLock));
 
   long randomWaitTime = getRandomBetween(500000, 2000000);
   printf("Car %d will delay for %ld us\n", this_vehicle->vehicleNumber, randomWaitTime);
@@ -51,24 +50,11 @@ void *carThread(void *input){ //jobthreadmethod //rmv
     //wait for some time before entering the queue
     usleep(randomWaitTime);
     //enter queue for respective entry point
-    swith(this_vehicle->entryPoint)
-    {
-      case NORTH:
-      addVehicleToList(&N_list_start, *this_vehicle);
-      break;
-      case SOUTH:
-      addVehicleToList(&N_list_start, *this_vehicle);
-      break;
-      case EAST:
-      addVehicleToList(&N_list_start, *this_vehicle);
-      break;
-      case WEST:
-      addVehicleToList(&N_list_start, *this_vehicle);
-      break;
-    }
+
+    addVehicleToList(this_vehicle->entryPoint, this_vehicle);
 
      //Block on queue semaphore
-    sem_wait(this_vehicle->queueLock);
+    sem_wait(&(this_vehicle->queueLock));
     //Now that I'm here I should be in the intersection
 
     //attempt to advance in the intersection until you leave
@@ -117,14 +103,14 @@ void initIntersectionManager(){
  * Lock access to the intersection so that only one thread is interacting with it at a time
  */
 void lockIntersection(){
-  sem_wait(intersectionLock);
+  sem_wait(&intersectionLock);
 }//lhnguyen
 
 /*
  * Unlock access to the intersection so that another thread can go about modifying it
  */
 void  unlockIntersection(){
-  sem_post(intersectionLock);
+  sem_post(&intersectionLock);
 }//lhnguyen
 
 /*
@@ -152,7 +138,7 @@ void  unlockIntersection(){
    vehicle->currentQuadrant = nextQuadrant;
 
    //if(the vehicle is at its intended exit destination)
-   if(vehicle->currentQuadrant->quadrant == vehicle->desination)
+   if(vehicle->currentQuadrant->quadrant == vehicle->destination)
    {
      //  then exit the intersection
      // TODO
@@ -161,6 +147,8 @@ void  unlockIntersection(){
      printf("Vehicle is leaving the intersection");
 
      //  and unblock the quadrant
+
+     //XXX: This may require an intersection lock arround it
      sem_post(&(currentQuadrant->occupied));
 
      return 0;
@@ -176,16 +164,18 @@ void  unlockIntersection(){
  */
 Bool isIntersectionAvailable(){
   //set the starting quadrant for counting
-  IntersectionQuadrant currentQuadrant = NE_quad;
+  IntersectionQuadrant *currentQuadrant = &NE_quad;
   int numOccupied = 0;
 
   //iterate through the intersection and count the number of quadrants which are occupied
   int i;
   for(i = 0; i < 4; i++);
   {
-    if(currentQuadrant->occupied == 1)
-      numOccupied++;
-    currentQuadrant = *(currentQuadrant.nextQuadrant);
+    int value;
+    sem_getvalue(&(currentQuadrant->occupied), &value);
+    if(value == 1) numOccupied++;
+
+    currentQuadrant = currentQuadrant->nextQuadrant;
   }
 
   //check to see if there are less than three cars in the intersection. if so, return true
@@ -219,8 +209,11 @@ int getOptimalEntryPoint(IntersectionQuadrant_t *quadrant){
   // First checks what quadrants can currently accept cars.
   int i;
   for(i = 0; i < 4; i++){
-    if(currentQuad.occupied <= 0) {
-      currentlyAccepting[numQuadsAccepting] = currentQuadrant.quadrant;
+    int value;
+    printf("Potential segfalut point\n");
+    sem_getvalue(&(currentQuad.occupied), &value);
+    if(value <= 0) {
+      currentlyAccepting[numQuadsAccepting] = currentQuad.quadrant;
       numQuadsAccepting++;
     }
     currentQuad = *(currentQuad.nextQuadrant);
@@ -252,9 +245,9 @@ void allowCarEntry(IntersectionQuadrant_t quadrant){
   //Unlock the cars queue mutex to allow it into the intersection
   sem_post(&(retrivedVehicle->queueLock));
   //Move the car into the intersection
-  while(->occupied == 1){
+  //while(->occupied == 1){
     //busy wait
-  }
+  //}
 }
 
 /*
@@ -288,7 +281,7 @@ void manageIntersection(){
 
 
 //determines the number of quadrants a vehicle must travel before exiting the intersection
-int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest){
+int calculateTravelDistance(CardinalDirection from, IntersectionQuadrant_t dest){
 
   switch(from) {
     case NORTH:
@@ -332,7 +325,7 @@ int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest)
         errorWithContext("Not a valid destination");
         exit(0);
       }
-      break;l
+      break;
   case EAST:
     if(dest == NORTH_EAST)
       return 1;
@@ -340,7 +333,7 @@ int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest)
       return 2;
     else if(dest == SOUTH_WEST)
       return 3;
-    if(dest == SOUTH_EAST){
+    else if(dest == SOUTH_EAST){
       errorWithContext("You attempted to U-turn. Not allowed");
       exit(0);
     } else {

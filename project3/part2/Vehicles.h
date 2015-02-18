@@ -4,6 +4,9 @@
 #include "Boolean.h"
 #include "Intersection.h"
 #include <pthread.h>
+#include "Error.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum {
   CAR = 0,
@@ -22,7 +25,7 @@ typedef struct Vehicle {
   VehicleLevel level; //The level that this job has
 
   sem_t queueLock; //The lock that prevents the Vehicle from entering the intersection
-  pthread_t jobThread; // The pointer to the actual thread that is running
+  pthread_t vehicleThread; // The pointer to the actual thread that is running
 
 
   Bool isTail; // Is this Vehicle the last element of the linked list

@@ -62,7 +62,7 @@ void unlockQueue(CardinalDirection direction){
 }
 
 int _initVehicleListStuff(CardinalDirection direction){
-  if(sem_init(_getListSemaphore(direction))){
+  if(sem_init(_getListSemaphore(direction), 0 , 1)){
     errorWithContext("Failed to init list semaphore\n");
     exit(1);
   }
@@ -83,7 +83,7 @@ int initVehicleStuff(){
 
 //Warning! This is not thread safe. Make sure you are using a lock!
 void _addVehicle(Vehicle *toVehicle, Vehicle *addVehicle){
-  if(toJob->isTail){
+  if(toVehicle->isTail){
     //printf("Adding Job\n");
     toVehicle->isTail = 0;
     addVehicle->isTail = 1;
@@ -91,7 +91,7 @@ void _addVehicle(Vehicle *toVehicle, Vehicle *addVehicle){
     return;
   } else {
     //printf("Recursing\n");
-    _addVehicle(toJob->nextVehicle, addVehicle);
+    _addVehicle(toVehicle->nextVehicle, addVehicle);
     return;
   }
 }
@@ -119,10 +119,10 @@ int removeFirstVehicle(const CardinalDirection queueSelection, Vehicle **returnV
     selectedVehicleHead->nextVehicle = NULL;
     selectedVehicleHead->isTail = true;
   } else {
-    selectedVehicleHead->nextVehicle = (*returnJob)->nextVehicle;
+    selectedVehicleHead->nextVehicle = (*returnVehicle)->nextVehicle;
     (*returnVehicle)->nextVehicle = NULL;
   }
-  unlock(queueSelection);
+  unlockQueue(queueSelection);
   return returnValue;
 }
 
@@ -140,12 +140,12 @@ int getFirstDestination(CardinalDirection queueSelection, IntersectionQuadrant_t
   lockQueue(queueSelection);
   //I'm not sure if dereferencing pointers is automic so for the sake of safety
   *returnDestination = selectedVehicleHead->nextVehicle->destination;
-  unlockQueue();
+  unlockQueue(queueSelection);
   return 0;
 }
 
 Bool areAnyVehiclesOfType(CardinalDirection queue, VehicleLevel level){
-  
+
 }
 
 

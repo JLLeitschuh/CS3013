@@ -1,6 +1,11 @@
 #ifndef _INTERSECTION_H_
 #define _INTERSECTION_H_
 
+#include "Boolean.h"
+#include "Intersection.h"
+#include <pthread.h>
+#include <semaphore.h>
+
 typedef enum {
   NORTH,
   EAST,
