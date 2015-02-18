@@ -29,18 +29,20 @@ typedef struct Vehicle {
   struct Vehicle *nextVehicle; // Pointer to the next vehicle in the linked list
 } Vehicle;
 
+int initVehicleStuff();
 
-void addVehicleToList(CardinalDirection queueSelection, Vehicle *vehicle);
+
+void addVehicleToList(const CardinalDirection queueSelection, Vehicle *vehicle);
 
 /*
  * Gets the first vehicle from the list and removes it.
  * Return 1 if failure and 0 if sucsess
  */
-int removeFirstVehicle(CardinalDirection queueSelection, Vehicle **returnVehicle);
+int removeFirstVehicle(const CardinalDirection queueSelection, Vehicle **returnVehicle);
 
 
 /*
- * Gets the first vechicles destination
+ * Gets the first vehicles destination
  * returns 1 if there is no vehicle waiting 0 if sucsessful
  */
 int getFirstDestination(CardinalDirection queueSelection, IntersectionQuadrant_t *returnDestination);
