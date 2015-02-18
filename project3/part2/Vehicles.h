@@ -16,6 +16,8 @@ typedef struct Vehicle {
   IntersectionQuadrant_t destination;
   CardinalDirection entryPoint;
 
+  IntersectionQuadrant *currentQuadrant;
+
   unsigned int vehicleNumber; //The number of this vehicle
   VehicleLevel level; //The level that this job has
 
