@@ -95,26 +95,7 @@ int advanceMeForward(Vehicle *vehicle){
  * returns true if there are less than three cars in the intersection
  */
 Bool isIntersectionAvailable(){
-  //set the starting quadrant for counting
-  IntersectionQuadrant currentQuadrant = NE_quad;
-  int numOccupied = 0;
-
-  //iterate through the intersection and count the number of quadrants which are occupied
-  int i;
-  for(i = 0; i < 4; i++);
-  {
-    if(currentQuadrant->occupied == 1)
-        numOccupied++;
-    currentQuadrant = *(currentQuadrant.nextQuadrant);
-  }
-
-
-  //check to see if there are less than three cars in the intersection. if so, return true
-  if(numOccupied < 3)
-     return TRUE;
-
-  //if not, return false
-  return FALSE;
+  //TODO
 }
 
 
@@ -125,29 +106,10 @@ Bool isIntersectionAvailable(){
  * Should return 0 if sucsessful and 1 if the quadrant that is open has no cars waiting in the queue.
  */
 int getOptimalEntryPoint(IntersectionQuadrant_t *quadrant){
-  
-  int numQuadsAccepting = 0;
-  IntersectionQuadrant_t currentlyAccepting[4];
-  IntersectionQuadrant currentQuad = NE_quad;
-
-
   //If there are no quadrants available then exit(0) with an error because there should be a quadrant free
-  if(!isIntersectionAvailable){
-     errorWithContext("There are no available quadrants");
-     exit(0);
-  }
 
   // First checks what quadrants can currently accept cars.
-  int i;
-  for(i = 0; i < 4; i++)
-  {
-     if(currentQuad.occupied <= 0)
-     {
-        currentlyAccepting[numQuadsAccepting] = currentQuadrant.quadrant;
-        numQuadsAccepting++;
-     }
-     currentQuad = *(currentQuad.nextQuadrant);
-  }
+
   // Using this information it polls thoes car queues for where each car wants to go.
 
   //if(no cars in queue for all open quadrants) return 1;
@@ -165,9 +127,19 @@ int getOptimalEntryPoint(IntersectionQuadrant_t *quadrant){
  * Allows the given car access to the intersection
  */
 void allowCarEntry(IntersectionQuadrant_t quadrant){
+  //Convert quadrant to CardinalDirection
+  CardinalDirection entryDirection;
   //Get the first car in the queue for the given quadrant
-  //Move the car into the intersection
+  Vehicle * retrivedVehicle;
+  if(removeFirstVehicle(entryDirection, &retrivedVehicle)){
+    errorWithContext("Error");
+  }
   //Unlock the cars queue mutex to allow it into the intersection
+  sem_post(&(retrivedVehicle->queueLock));
+  //Move the car into the intersection
+  while(->occupied == 1){
+    //busy wait
+  }
 }
 
 
@@ -200,75 +172,4 @@ void manageIntersection(){
     allowCarEntry(optimalEntry));
     unlockIntersection();
   }
-}
-
-
-//determines the number of quadrants a vehicle must travel before exiting the intersection
-int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest){
-
-  switch(from)
-  {
-
-	case NORTH:
-			if(dest == NORTH_WEST)
-				return 1;
-			else if(dest == SOUTH_WEST)
-				return 2;
-			else if(dest == SOUTH_EAST)
-				return 3;
-			else if(dest == NORTH_EAST)
-				errorWithContext("You attempted to U-turn. Not allowed");
-				exit(0);
-			else
-				errorWithContext("Not a valid source direction");
-				exit(0);
-	case WEST:
-			if(dest == SOUTH_WEST)
-				return 1;
-			else if(dest == SOUTH_EAST)
-				return 2;
-			else if(dest == NORTH_EAST)
-				return 3;
-			else if(dest == NORTH_WEST)
-				errorWithContext("You attempted to U-turn. Not Allowed");
-				exit(0);
-			else
-				errorWithContext("Not a valid source direction");
-				exit(0);
-
-	case SOUTH:
-			if(dest == SOUTH_EAST)
-				return 1;
-			else if(dest == NORTH_EAST)
-				return 2;
-			else if(dest == NORTH_WEST)
-				return 3;
-			else if(dest == SOUTH_WEST)
-				errorWithContext("You attempted to U-turn. Not allowed");
-				exit(0);
-			else
-				errorWithContext("Not a valid destination");
-				exit(0);
-
-	case EAST:
-			if(dest == NORTH_EAST)
-				return 1;
-			else if(dest == NORTH_WEST)
-				return 2;
-			else if(dest == SOUTH_WEST)
-				return 3;
-			if(dest == SOUTH_EAST)
-				errorWithContext("You attempted to U-turn. Not allowed");
-				exit(0);
-			else
-				errorWithContext("Not a valid source direction");
-				exit(0);
-
-	default:
-			errorWithContext("Not a valid source direction");
-			exit(0);
-
-  }//end switch statement
-
-	return -1; //return statement in case the current pair of dest and from has somehow ended up at this point
 }
