@@ -212,9 +212,9 @@ int getOptimalEntryPoint(IntersectionQuadrant_t *quadrant){
 
   //If there are no quadrants available then exit(0) with an error because there should be a quadrant free
   if(!isIntersectionAvailable){
-   errorWithContext("There are no available quadrants");
-   exit(0);
- }
+    errorWithContext("There are no available quadrants");
+    exit(0);
+  }
 
   // First checks what quadrants can currently accept cars.
   int i;
@@ -262,7 +262,6 @@ void allowCarEntry(IntersectionQuadrant_t quadrant){
  */
 void manageIntersection(){
   while(1){
-
     //Freze cars where they are and dont let them change where they are in the intersection
     lockIntersection();
     //If there isn't space available in the intersection then dont procede
@@ -291,69 +290,68 @@ void manageIntersection(){
 //determines the number of quadrants a vehicle must travel before exiting the intersection
 int calculateTravelDistance(CardinalDirection from, intersectionQuadrant_t dest){
 
-  switch(from)
-  {
-
-   case NORTH:
-   if(dest == NORTH_WEST)
-    return 1;
-  else if(dest == SOUTH_WEST)
-    return 2;
-  else if(dest == SOUTH_EAST)
-    return 3;
-  else if(dest == NORTH_EAST)
-    errorWithContext("You attempted to U-turn. Not allowed");
-  exit(0);
-  else
-    errorWithContext("Not a valid source direction");
-  exit(0);
-  case WEST:
-  if(dest == SOUTH_WEST)
-    return 1;
-  else if(dest == SOUTH_EAST)
-    return 2;
-  else if(dest == NORTH_EAST)
-    return 3;
-  else if(dest == NORTH_WEST)
-    errorWithContext("You attempted to U-turn. Not Allowed");
-  exit(0);
-  else
-    errorWithContext("Not a valid source direction");
-  exit(0);
-
-  case SOUTH:
-  if(dest == SOUTH_EAST)
-    return 1;
-  else if(dest == NORTH_EAST)
-    return 2;
-  else if(dest == NORTH_WEST)
-    return 3;
-  else if(dest == SOUTH_WEST)
-    errorWithContext("You attempted to U-turn. Not allowed");
-  exit(0);
-  else
-    errorWithContext("Not a valid destination");
-  exit(0);
-
+  switch(from) {
+    case NORTH:
+      if(dest == NORTH_WEST) return 1;
+      else if(dest == SOUTH_WEST) return 2;
+      else if(dest == SOUTH_EAST) return 3;
+      else if(dest == NORTH_EAST){
+        errorWithContext("You attempted to U-turn. Not allowed");
+        exit(0);
+      } else {
+        errorWithContext("Not a valid source direction");
+        exit(0);
+      }
+      break;
+    case WEST:
+      if(dest == SOUTH_WEST)
+        return 1;
+      else if(dest == SOUTH_EAST)
+        return 2;
+      else if(dest == NORTH_EAST)
+        return 3;
+      else if(dest == NORTH_WEST) {
+        errorWithContext("You attempted to U-turn. Not Allowed");
+        exit(0);
+      } else {
+          errorWithContext("Not a valid source direction");
+          exit(0);
+      }
+      break;
+    case SOUTH:
+      if(dest == SOUTH_EAST)
+        return 1;
+      else if(dest == NORTH_EAST)
+        return 2;
+      else if(dest == NORTH_WEST)
+        return 3;
+      else if(dest == SOUTH_WEST){
+        errorWithContext("You attempted to U-turn. Not allowed");
+        exit(0);
+      } else {
+        errorWithContext("Not a valid destination");
+        exit(0);
+      }
+      break;l
   case EAST:
-  if(dest == NORTH_EAST)
-    return 1;
-  else if(dest == NORTH_WEST)
-    return 2;
-  else if(dest == SOUTH_WEST)
-    return 3;
-  if(dest == SOUTH_EAST)
-    errorWithContext("You attempted to U-turn. Not allowed");
-  exit(0);
-  else
-    errorWithContext("Not a valid source direction");
-  exit(0);
-
+    if(dest == NORTH_EAST)
+      return 1;
+    else if(dest == NORTH_WEST)
+      return 2;
+    else if(dest == SOUTH_WEST)
+      return 3;
+    if(dest == SOUTH_EAST){
+      errorWithContext("You attempted to U-turn. Not allowed");
+      exit(0);
+    } else {
+      errorWithContext("Not a valid source direction");
+      exit(0);
+    }
+    break;
   default:
-  errorWithContext("Not a valid source direction");
-  exit(0);
-
+    errorWithContext("Not a valid source direction");
+    exit(0);
+    break;
   }//end switch statement
-
   return -1; //return statement in case the current pair of dest and from has somehow ended up at this point
 }//alex
