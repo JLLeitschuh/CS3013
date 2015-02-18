@@ -1,12 +1,6 @@
 #include <semaphore.h>
-
-typedef enum{
-  NORTH_EAST,
-  SOUTH_EAST,
-  SOUTH_WEST,
-  NORTH_WEST
-} IntersectionQuadrant_t; // This is the type version
-
+#include "Vehicles.h"
+#include "Boolean.h"
 
 void *carThread(void *input){
   Vehicle *vehicle = (Vehicle*) input;
@@ -23,13 +17,6 @@ void *carThread(void *input){
     //Wait for a little bit before returing to the queue
   }
 }
-
-
-typedef struct IntersectionQuadrant{
-  IntersectionQuadrant_t quadrant; //For easier comparisons
-  sem_t occupied; // If occupied then this will be a 0 if not it will be a 1
-  struct IntersectionQuadrant *nextQuadrant;
-} IntersectionQuadrant;
 
 //The intersection lock that prevents multiple cars from moving through the intersection
 sem_t intersectionLock;

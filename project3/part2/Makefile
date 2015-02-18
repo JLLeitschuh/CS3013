@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-lpthread -lrt -std=gnu99
-DEPS = car.h Boolean.h Error.h
+DEPS = car.h Boolean.h Error.h Vehicles.h
 OBJ = intersect.o Error.c
 
 all: intersect
