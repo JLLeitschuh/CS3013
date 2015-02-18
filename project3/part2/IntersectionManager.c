@@ -37,39 +37,6 @@ void printCarEntry(Vehicle* this_car , const char* message){
   }
 } //lhnguyen
 
-void *carThread(void *input){ //jobthreadmethod //rmv
-  Vehicle *this_vehicle = (Vehicle*) input;
-  //Blocking so it won't run out of turn
-  sem_wait(&(this_vehicle->queueLock));
-
-  long randomWaitTime = getRandomBetween(500000, 2000000);
-  printf("Car %d will delay for %ld us\n", this_vehicle->vehicleNumber, randomWaitTime);
-
-  // Iterate infinitely
-  while(1){
-    //wait for some time before entering the queue
-    usleep(randomWaitTime);
-    //enter queue for respective entry point
-
-    addVehicleToList(this_vehicle->entryPoint, this_vehicle);
-
-     //Block on queue semaphore
-    sem_wait(&(this_vehicle->queueLock));
-    //Now that I'm here I should be in the intersection
-
-    //attempt to advance in the intersection until you leave
-    while(advanceMeForward(this_vehicle)){
-      //we have exited the intersection
-      //Wait for a little bit before returing to the queue
-      long randomRunTime = getRandomBetween(500000, 2000000);
-      usleep(randomRunTime);
-      randomWaitTime = getRandomBetween(4000000, 9000000);
-    }
-  }
-  printf("Car %d crossing from %d has passed to %d\n", this_vehicle->vehicleNumber, this_vehicle->entryPoint, this_vehicle->destination );
-  return 0;
-}//lhnguyen
-
 //The intersection lock that prevents multiple cars from moving through the intersection
 sem_t intersectionLock;
 IntersectionQuadrant NE_quad;

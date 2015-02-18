@@ -3,10 +3,12 @@
 
 #include "Boolean.h"
 #include "Intersection.h"
+#include "Random.h"
 #include <pthread.h>
 #include "Error.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef enum {
   CAR = 0,
@@ -33,6 +35,8 @@ typedef struct Vehicle {
 } Vehicle;
 
 int initVehicleStuff();
+
+int initVehicleStruct(Vehicle *init, VehicleLevel level);
 
 
 void addVehicleToList(const CardinalDirection queueSelection, Vehicle *vehicle);

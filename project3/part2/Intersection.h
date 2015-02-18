@@ -7,17 +7,17 @@
 #include <semaphore.h>
 
 typedef enum {
-  NORTH,
-  EAST,
-  SOUTH,
-  WEST
+  NORTH = 0,
+  EAST = 1,
+  SOUTH = 2,
+  WEST = 3
 } CardinalDirection;
 
 typedef enum{
-  NORTH_EAST,
-  SOUTH_EAST,
-  SOUTH_WEST,
-  NORTH_WEST
+  NORTH_EAST = 0,
+  SOUTH_EAST = 1,
+  SOUTH_WEST = 2,
+  NORTH_WEST = 3
 } IntersectionQuadrant_t; // This is the type version
 
 typedef struct IntersectionQuadrant{
