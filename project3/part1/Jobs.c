@@ -196,7 +196,7 @@ void *jobThreadMethod(void *input) {
 	//Down the mutex the first time so that the next time it is downed it will block
 	pthread_mutex_lock(&(jobData->threadLock));
 	long randomWaitTime = getRandomBetween(500000, 2000000);
-	printf("Running Job %d Thread. Security: %d Will delay for %ld us\n",
+	printf("Running Job %2d Thread. Security: %d Will delay for %7ld us\n",
 			jobData->jobNumber, jobData->level, randomWaitTime);
 	//Iterate infinitely
 	while (true) {

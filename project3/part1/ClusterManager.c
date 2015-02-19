@@ -174,6 +174,7 @@ void manageCluster() {
 			//check the type of the job
 			//printf("Starved Job %d\n", level);
 			if(level == UNCLASSIFIED && !canClusterTakeUnsecured()) continue;
+			if((level == TOP_SECRET || level == SECRET) && isClusterUnsecured()) continue;
 			//if UNSECURE and cluster is US then add
 			Job *nextJob = NULL;
 			if (removeFirstJob(&nextJob)) {

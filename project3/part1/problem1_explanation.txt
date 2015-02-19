@@ -1,0 +1,3 @@
+Once you have completed your solution, explain how your solution avoids depriving any job type of the cluster.
+
+We prevent any job from being deprived from using the cluster by keeping track of how many times the first job in the queue gets skipped by another job. Each time that the first job in the queue isn't run a counter is incremented. If the counter reaches 4 then the job is considered starved and a flag is set that triggers starvation handling in the cluster manager. At that point the cluster manager waits for the next job to exit before placing the starved job into the cluster. When this happens normal execution continues.
