@@ -1,4 +1,5 @@
 #include <semaphore.h>
+#include <stdio.h>
 #include "Vehicles.h"
 #include "Boolean.h"
 #include "Intersection.h"
@@ -14,6 +15,9 @@ int main(int argc, char *argv[]){
   }
 
   usleep(3000);
+  getchar();
+  printVehicleQueueData();
+  getchar();
 
   manageIntersection();
 

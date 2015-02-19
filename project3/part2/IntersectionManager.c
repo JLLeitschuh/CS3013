@@ -39,26 +39,37 @@ void printCarEntry(Vehicle* this_car , const char* message){
 
 //The intersection lock that prevents multiple cars from moving through the intersection
 sem_t intersectionLock;
+sem_t entrySemaphore;
 IntersectionQuadrant NE_quad;
 IntersectionQuadrant SE_quad;
 IntersectionQuadrant SW_quad;
 IntersectionQuadrant NW_quad;
 
 int getIntersectionQuadrantFromEntry(CardinalDirection entry, IntersectionQuadrant **returnQuad){
-
-  IntersectionQuadrant *quad = &NE_quad;
-  for(int i = 0; i < 4; i++){
-    if(quad->entry == entry){
-      *returnQuad = quad;
-      return 0;
-    }
-    quad = quad->nextQuadrant;
+  switch(entry){
+    case NORTH:
+      *returnQuad = &NW_quad;
+      break;
+    case WEST:
+      *returnQuad = &SW_quad;
+      break;
+    case SOUTH:
+      *returnQuad = &SE_quad;
+      break;
+    case EAST:
+      *returnQuad = &NE_quad;
+      break;
+    default:
+      errorWithContext("Invaild entry");
+      exit(1);
+      break;
   }
-  return 1;
+  return 0;
 }
 
 void initIntersectionManager(){
   sem_init(&intersectionLock, 0 , 1);
+  sem_init(&entrySemaphore, 0 , 0);
 
 
   NE_quad.quadrant = NORTH_EAST;
@@ -87,6 +98,7 @@ void initIntersectionManager(){
  * Lock access to the intersection so that only one thread is interacting with it at a time
  */
 void lockIntersection(){
+  //printf("[SEMAPHORE] locked\n");
   sem_wait(&intersectionLock);
 }//lhnguyen
 
@@ -94,12 +106,18 @@ void lockIntersection(){
  * Unlock access to the intersection so that another thread can go about modifying it
  */
 void  unlockIntersection(){
+  //printf("[SEMAPHORE] unlocked\n");
   sem_post(&intersectionLock);
 }//lhnguyen
 
+void printVehicleStats(Vehicle *vehicle, char* additional_message){
+  printf("%s Stats [Number: %d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+}
+
 void enterIntersection(Vehicle *vehicle){
-  printf("Entering intersection");
+  printVehicleStats(vehicle, "[CAR] Entering intersection\n");
   sem_wait(&(vehicle->currentQuadrant->occupied));
+  sem_post(&entrySemaphore);
 }
 
 /*
@@ -107,45 +125,65 @@ void enterIntersection(Vehicle *vehicle){
  * This is run by the car threads as they try to move forward in the Intersection
  * return 0 if car has exited the intersection otherwise return 1
  */
- int advanceMeForward(Vehicle *vehicle){
-   printf("Advancing vehicle forward\n");
-   //Now unblocked
-   IntersectionQuadrant *currentQuadrant = vehicle->currentQuadrant;
-   printf("Here");
-   IntersectionQuadrant *nextQuadrant = currentQuadrant->nextQuadrant;
+int advanceMeForward(Vehicle *vehicle){
+  printf("[CAR] %d Advancing vehicle forward\n", vehicle->vehicleNumber);
+  //Now unblocked
+  IntersectionQuadrant *currentQuadrant = vehicle->currentQuadrant;
+  IntersectionQuadrant *nextQuadrant = currentQuadrant->nextQuadrant;
+
+  if(vehicle->currentQuadrant->quadrant == vehicle->destination) {
+    //  then exit the intersection
+
+    //  announce (printf) that you are leaving the intersection
+    printf("[CAR] Vehicle %d is leaving the intersection\n", vehicle->vehicleNumber);
+
+    //  and unblock the quadrant
+
+    //XXX: This may require an intersection lock arround it
+    lockIntersection();
+    sem_post(&(currentQuadrant->occupied));
+    unlockIntersection();
+    vehicle->currentQuadrant = NULL;
+
+    return 0;
+  }
 
 
-   printf("Waiting on semaphore\n");
-   //blocks on the next intersection quadrant 'occupied' semaphore (vehicle should know what quadrant it's in)
-   sem_wait(&(nextQuadrant->occupied));
+  printf("[CAR] %d Waiting on semaphore occupied for quadrant %d\n", vehicle->vehicleNumber, vehicle->currentQuadrant->quadrant);
+  //blocks on the next intersection quadrant 'occupied' semaphore (vehicle should know what quadrant it's in)
+  //lockIntersection();
+  sem_wait(&(nextQuadrant->occupied));
+  //unlockIntersection();
 
+  printVehicleStats(vehicle, "[CAR] After occupied, lock on intersection");
+  //Now inside the next intersection quadrant
+  lockIntersection(); //Do this here to prevent deadlocks
+  //Now release the semaphore for the quadrant you were previously in.
+  printf("[CAR] %d After intersection lock, unlock previous\n", vehicle->vehicleNumber);
+  sem_post(&(currentQuadrant->occupied));
 
-   //Now inside the next intersection quadrant
-   lockIntersection(); //Do this here to prevent deadlocks
-   //Now release the semaphore for the quadrant you were previously in.
-   sem_post(&(currentQuadrant->occupied));
+  unlockIntersection(); //Do this here to prevent deadlocks
 
-   unlockIntersection(); //Do this here to prevent deadlocks
+  //Update the vehicles "current intersection"
+  vehicle->currentQuadrant = nextQuadrant;
 
-   //Update the vehicles "current intersection"
-   vehicle->currentQuadrant = nextQuadrant;
-
-   //if(the vehicle is at its intended exit destination)
-   if(vehicle->currentQuadrant->quadrant == vehicle->destination) {
-     //  then exit the intersection
-     // TODO
-
-     //  announce (printf) that you are leaving the intersection
-     printf("Vehicle is leaving the intersection");
-
-     //  and unblock the quadrant
-
-     //XXX: This may require an intersection lock arround it
-     sem_post(&(currentQuadrant->occupied));
-     vehicle->currentQuadrant = NULL;
-
-     return 0;
-   }
+  //if(the vehicle is at its intended exit destination)
+  // if(vehicle->currentQuadrant->quadrant == vehicle->destination) {
+  //   //  then exit the intersection
+  //
+  //   //  announce (printf) that you are leaving the intersection
+  //   printf("[CAR] Vehicle %d is leaving the intersection", vehicle->vehicleNumber);
+  //
+  //   //  and unblock the quadrant
+  //
+  //   //XXX: This may require an intersection lock arround it
+  //   //lockIntersection();
+  //   sem_post(&(currentQuadrant->occupied));
+  //   //unlockIntersection();
+  //   vehicle->currentQuadrant = NULL;
+  //
+  //   return 0;
+  //  }
 
    return 1;
 }
@@ -235,40 +273,38 @@ int getOptimalEntryPoint(CardinalDirection *entry){
  */
 void allowCarEntry(CardinalDirection entry){
   IntersectionQuadrant *quadrant;
-  printf("Get quadrant\n");
+  printf("[Manager] allow Entry %d\n", entry);
   if(getIntersectionQuadrantFromEntry(entry, &quadrant)){
     errorWithContext("Invalid entry value");
     exit(1);
   }
-  printf("Using quadrant\n");
   //Convert quadrant to CardinalDirection
   CardinalDirection entryDirection = quadrant->entry;
-  printf("Removing first vechicle\n");
   //Get the first car in the queue for the given quadrant
   Vehicle *retrivedVehicle;
   if(removeFirstVehicle(entryDirection, &retrivedVehicle)){
     errorWithContext("Could not remove the first vehicle");
     exit(1);
   }
-  printf("Using removed vehicle\n");
   //Unlock the cars queue mutex to allow it into the intersection
-
   retrivedVehicle->currentQuadrant = quadrant;
-
+  printVehicleStats(retrivedVehicle, "[MANAGER] Allowed to enter:");
   //Move the car into the intersection
   sem_post(&(retrivedVehicle->queueLock));
-  printf("Car moving into intersection\n");
   int value;
-  do{ //Busy wait for the lock to change
-    sem_getvalue(&(quadrant->occupied), &value);
-  } while(value == 1);
+  printf("[MANAGER] Doing busywait\n");
+  int overflowValue = 0;
+
+  sem_wait(&entrySemaphore);
+
+  printf("[MANAGER] after allow car entry\n");
 }
 
 /*
  * Entry point for cars into the intersection.
  */
 void manageIntersection(){
-  printf("Begining Intersection management\n");
+  printf("[MANAGER] Begining Intersection management\n");
   while(1){
     //Freze cars where they are and dont let them change where they are in the intersection
     lockIntersection();
@@ -277,7 +313,7 @@ void manageIntersection(){
       unlockIntersection();
       continue;
     }
-    printf("Getting optimal entry\n");
+    //printf("[MANAGER] Getting optimal entry\n");
     CardinalDirection optimalEntry;
     if(getOptimalEntryPoint(&optimalEntry)){
       /*
@@ -286,12 +322,13 @@ void manageIntersection(){
        */
        unlockIntersection();
        continue;
-     }
-     printf("Car found\n");
+    }
+    printf("[MANAGER] Car found\n");
     //We know which car has the optimal path
     //Allow the car that has the optimal entry path access to the intersection
     allowCarEntry(optimalEntry);
     unlockIntersection();
+    printf("[MANAGER] After car entry unlock\n");
   }
 }
 

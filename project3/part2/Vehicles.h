@@ -47,6 +47,7 @@ void addVehicleToList(const CardinalDirection queueSelection, Vehicle *vehicle);
  */
 int removeFirstVehicle(const CardinalDirection queueSelection, Vehicle **returnVehicle);
 
+void printVehicleQueueData();
 
 /*
  * Gets the first vehicles destination

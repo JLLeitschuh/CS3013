@@ -15,15 +15,12 @@ void *carThread(void *input){ //jobthreadmethod //rmv
   //Decrement the semaphore so that next time wait is called on it it blocks
   sem_wait(&(this_vehicle->queueLock));
 
-  long randomWaitTime = getRandomBetween(500000, 2000000);
-  printf("Car %d will delay for %ld us\n", this_vehicle->vehicleNumber, randomWaitTime);
+  printf("[CAR] %d begining loop\n", this_vehicle->vehicleNumber);
 
   // Iterate infinitely
   while(1){
-    printf("Assign car\n");
+    printf("[CAR] %d Assign car\n", this_vehicle->vehicleNumber);
     assignRandomPathToVehicle(this_vehicle);
-    //wait for some time before entering the queue
-    usleep(randomWaitTime);
     //printf("Add Vehicle to list\n");
     //enter queue for respective entry point
     addVehicleToList(this_vehicle->entryPoint, this_vehicle);
@@ -31,18 +28,18 @@ void *carThread(void *input){ //jobthreadmethod //rmv
     //Block on queue semaphore
     //printf("Before queue lock\n");
     sem_wait(&(this_vehicle->queueLock));
-    //printf("After queue lock\n");
+    printf("[CAR] After queue lock\n");
+    //exit(1);
     enterIntersection(this_vehicle);
     //Now that I'm here I should be in the intersection
 
     //attempt to advance in the intersection until you leave
-    while(advanceMeForward(this_vehicle)){}
+    while(advanceMeForward(this_vehicle)){
+      printf("[CAR]looping\n");
+    }
 
     //we have exited the intersection
     //Wait for a little bit before returing to the queue
-    long randomRunTime = getRandomBetween(500000, 2000000);
-    usleep(randomRunTime);
-    randomWaitTime = getRandomBetween(4000000, 9000000);
   }
   printf("Car %d crossing from %d has passed to %d\n", this_vehicle->vehicleNumber, this_vehicle->entryPoint, this_vehicle->destination );
   return 0;
@@ -187,9 +184,9 @@ void addVehicleToList(const CardinalDirection queueSelection, Vehicle *vehicle){
   Vehicle *selectedVehicleHead = _getVehicleListHead(queueSelection);
   //printf("Pre lock\n");
   lockQueue(queueSelection);
-  printf("Adding Car %d to %d... ", vehicle->vehicleNumber, queueSelection);
+  //printf("Adding Car %d to %d... ", vehicle->vehicleNumber, queueSelection);
   _addVehicle(selectedVehicleHead, vehicle);
-  printf("Add complete\n");
+  //printf("Add complete\n");
   unlockQueue(queueSelection);
   //printf("Post lock\n");
 }
@@ -233,6 +230,29 @@ int getFirstDestination(CardinalDirection queueSelection, IntersectionQuadrant_t
   *returnDestination = selectedVehicleHead->nextVehicle->destination;
   unlockQueue(queueSelection);
   return 0;
+}
+
+void _printVehicleQueueData(CardinalDirection queueSelection){
+  Vehicle *selected = _getVehicleListHead(queueSelection);
+  lockQueue(queueSelection);
+  if(selected->isTail){
+    printf("[QUEUE: %d] EMPTY\n", queueSelection);
+  } else {
+    do {
+      selected = selected->nextVehicle;
+      printf("[QUEUE: %d] Number: %2d Entry: %d, Destination: %d\n", queueSelection, selected->vehicleNumber, selected->entryPoint, selected->destination);
+    } while(!selected->isTail);
+    printf("\n");
+
+  }
+  unlockQueue(queueSelection);
+}
+
+void printVehicleQueueData(){
+  _printVehicleQueueData(EAST);
+  _printVehicleQueueData(NORTH);
+  _printVehicleQueueData(WEST);
+  _printVehicleQueueData(SOUTH);
 }
 
 Bool areAnyVehiclesOfType(CardinalDirection queue, VehicleLevel level){

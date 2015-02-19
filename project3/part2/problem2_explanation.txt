@@ -1,9 +1,14 @@
-Phase 1: Assume that the Minnesotan drivers follow the convention that whoever arrives at the intersection first proceeds first. Using the language of synchronization primitives, describe the way this intersection is controlled. In what ways is this method suboptimal?
+Phase 1: Assume that the autonomous vehicles follow the convention that whoever arrives at the intersection first proceeds first. Using the language of synchronization primitives, describe the way this intersection is controlled. In what ways is this method suboptimal?
 
 	The intersection is controlled by a FIFO queue.  It is suboptimal because only one car from each direction can utilize the intersection at the same time, even if there is the possibility for two or more to proceed.
 
 Phase 2: In the second iteration of the autonomous driving program, assume that the vehicle will enter an intersection, even if only the front bumper of their car will fit. In what instances can this mindset produce a deadlock? How can such a deadlock be prevented?
 
-	A deadlock occurs when all 4 drivers want to go in a direction that is not a right turn. Each of them will move into their respectivre closest quadrant but no one else will be able to go any further. The easiest to prevent this deadlock is to only allow 3 drivers to go at a time.
+	A deadlock occurs when all 4 drivers want to go in a direction that is not a right turn. Each of them will move into their respective closest quadrant but no one else will be able to go any further. The easiest way to prevent this deadlock is to only allow 3 to be in the intersection at the same time.
 
-	Our solution: Our program creates 15 car threads and adds them to a queue. Three control threads run concurrently to manage the semaphores representing each intersection quadrant. Each thread selects a car from the queue and allows it to cross the intersection. 
+	Our solution: Our program creates 20 car threads and adds them to a queue. There is one master thread that controls what vehicle enters the intersection. The master thread locks the intersection to prevent changes from happening. It then checks if the intersection can handle another driver entering the intersection. If it can then it finds the car that has the shortest distance to travel through the intersection and removes it from the queue allowing it into the intersection.
+
+Phase 3: Emergency vehicles and motorcades can be a special case. When an emergency vehicle arrives in a queue, it must gain priority and pass all cars queued. Further, all other traffic must vacate the intersection to let the emergency vehicle proceed. For a motorcade, the same process will be followed, with the exception of multiple vehicles all traveling in the same direction.
+
+	We didn't have the time to implement this functionality. Ideally, we would add a check that goes into the queue and checks if there is an emergency vehicle or motorcade. If there is then it pulls it to the front of the queue and runs it next ahead of all other cars.
+	Similarity for the motorcade the queue would be polled for motorcade vehicles and the first one would be pulled out and run through the queue.
