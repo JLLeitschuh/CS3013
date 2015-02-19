@@ -22,6 +22,7 @@ typedef enum{
 
 typedef struct IntersectionQuadrant{
   IntersectionQuadrant_t quadrant; //For easier comparisons
+  CardinalDirection entry; //Where cars will enter from for this quadrant
 
   sem_t occupied; // If occupied then this will be less than or equal to 0 if not it will be a 1
 

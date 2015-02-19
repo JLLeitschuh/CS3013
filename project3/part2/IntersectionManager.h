@@ -2,6 +2,7 @@
 #define _INTERSECTION_MANAGER_H_
 
 #include <semaphore.h>
+#include <limits.h>
 #include "Vehicles.h"
 #include "Boolean.h"
 #include "Intersection.h"

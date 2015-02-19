@@ -12,7 +12,7 @@ Vehicle *W_list_start;
 
 void *carThread(void *input){ //jobthreadmethod //rmv
   Vehicle *this_vehicle = (Vehicle*) input;
-  //Blocking so it won't run out of turn
+  //Decrement the semaphore so that next time wait is called on it it blocks
   sem_wait(&(this_vehicle->queueLock));
 
   long randomWaitTime = getRandomBetween(500000, 2000000);

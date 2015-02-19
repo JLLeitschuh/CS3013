@@ -12,7 +12,9 @@ int main(int argc, char *argv[]){
     Vehicle *initVehicle = malloc(sizeof(Vehicle));
     initVehicleStruct(initVehicle, CAR);
   }
-  while(1){
-    usleep(3000);
-  };
+
+  usleep(3000);
+
+  manageIntersection();
+
 }
