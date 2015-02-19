@@ -44,12 +44,12 @@ IntersectionQuadrant SE_quad;
 IntersectionQuadrant SW_quad;
 IntersectionQuadrant NW_quad;
 
-int getIntersectionQuadrantFromEntry(CardinalDirection entry, IntersectionQuadrant *returnQuad){
+int getIntersectionQuadrantFromEntry(CardinalDirection entry, IntersectionQuadrant **returnQuad){
 
   IntersectionQuadrant *quad = &NE_quad;
   for(int i = 0; i < 4; i++){
     if(quad->entry == entry){
-      returnQuad = quad;
+      *returnQuad = quad;
       return 0;
     }
     quad = quad->nextQuadrant;
@@ -97,16 +97,25 @@ void  unlockIntersection(){
   sem_post(&intersectionLock);
 }//lhnguyen
 
+void enterIntersection(Vehicle *vehicle){
+  printf("Entering intersection");
+  sem_wait(&(vehicle->currentQuadrant->occupied));
+}
+
 /*
  * Blocks
  * This is run by the car threads as they try to move forward in the Intersection
  * return 0 if car has exited the intersection otherwise return 1
  */
  int advanceMeForward(Vehicle *vehicle){
+   printf("Advancing vehicle forward\n");
    //Now unblocked
    IntersectionQuadrant *currentQuadrant = vehicle->currentQuadrant;
+   printf("Here");
    IntersectionQuadrant *nextQuadrant = currentQuadrant->nextQuadrant;
 
+
+   printf("Waiting on semaphore\n");
    //blocks on the next intersection quadrant 'occupied' semaphore (vehicle should know what quadrant it's in)
    sem_wait(&(nextQuadrant->occupied));
 
@@ -122,8 +131,7 @@ void  unlockIntersection(){
    vehicle->currentQuadrant = nextQuadrant;
 
    //if(the vehicle is at its intended exit destination)
-   if(vehicle->currentQuadrant->quadrant == vehicle->destination)
-   {
+   if(vehicle->currentQuadrant->quadrant == vehicle->destination) {
      //  then exit the intersection
      // TODO
 
@@ -134,6 +142,7 @@ void  unlockIntersection(){
 
      //XXX: This may require an intersection lock arround it
      sem_post(&(currentQuadrant->occupied));
+     vehicle->currentQuadrant = NULL;
 
      return 0;
    }
@@ -226,20 +235,29 @@ int getOptimalEntryPoint(CardinalDirection *entry){
  */
 void allowCarEntry(CardinalDirection entry){
   IntersectionQuadrant *quadrant;
-  if(getIntersectionQuadrantFromEntry(entry, quadrant)){
+  printf("Get quadrant\n");
+  if(getIntersectionQuadrantFromEntry(entry, &quadrant)){
     errorWithContext("Invalid entry value");
     exit(1);
   }
+  printf("Using quadrant\n");
   //Convert quadrant to CardinalDirection
   CardinalDirection entryDirection = quadrant->entry;
+  printf("Removing first vechicle\n");
   //Get the first car in the queue for the given quadrant
-  Vehicle * retrivedVehicle;
+  Vehicle *retrivedVehicle;
   if(removeFirstVehicle(entryDirection, &retrivedVehicle)){
-    errorWithContext("Error");
+    errorWithContext("Could not remove the first vehicle");
+    exit(1);
   }
+  printf("Using removed vehicle\n");
   //Unlock the cars queue mutex to allow it into the intersection
-  sem_post(&(retrivedVehicle->queueLock));
+
+  retrivedVehicle->currentQuadrant = quadrant;
+
   //Move the car into the intersection
+  sem_post(&(retrivedVehicle->queueLock));
+  printf("Car moving into intersection\n");
   int value;
   do{ //Busy wait for the lock to change
     sem_getvalue(&(quadrant->occupied), &value);
@@ -250,7 +268,7 @@ void allowCarEntry(CardinalDirection entry){
  * Entry point for cars into the intersection.
  */
 void manageIntersection(){
-  printf("Begining Intersection management");
+  printf("Begining Intersection management\n");
   while(1){
     //Freze cars where they are and dont let them change where they are in the intersection
     lockIntersection();
@@ -259,7 +277,7 @@ void manageIntersection(){
       unlockIntersection();
       continue;
     }
-
+    printf("Getting optimal entry\n");
     CardinalDirection optimalEntry;
     if(getOptimalEntryPoint(&optimalEntry)){
       /*
@@ -269,6 +287,7 @@ void manageIntersection(){
        unlockIntersection();
        continue;
      }
+     printf("Car found\n");
     //We know which car has the optimal path
     //Allow the car that has the optimal entry path access to the intersection
     allowCarEntry(optimalEntry);

@@ -32,6 +32,7 @@ void *carThread(void *input){ //jobthreadmethod //rmv
     //printf("Before queue lock\n");
     sem_wait(&(this_vehicle->queueLock));
     //printf("After queue lock\n");
+    enterIntersection(this_vehicle);
     //Now that I'm here I should be in the intersection
 
     //attempt to advance in the intersection until you leave
