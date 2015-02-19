@@ -210,7 +210,11 @@ void *jobThreadMethod(void *input) {
 		long randomRunTime = getRandomBetween(500000, 2000000);
 		usleep(randomRunTime);
 		exitCluster(jobData);
-		randomWaitTime = getRandomBetween(4000000, 9000000);
+    if(jobData->level == TOP_SECRET){
+      randomWaitTime = getRandomBetween(15000000, 18000000);
+    } else {
+      randomWaitTime = getRandomBetween(4000000, 6000000);
+    }
 	}
 
 	printf("Job %d is complete.\n", jobData->jobNumber);
@@ -263,39 +267,23 @@ void initTheseJobs(SecurityLevel level) {
 	}
 }
 
-int isStarving() {
-	int returnValue;
-	getFirstJob();
-	if (countFIQ > 4) {
-		printf("First job is starving\n");
-		returnValue = 1;
-	} else
-		returnValue = 0;
-	return returnValue;
-} //lhnguyen
 
-/*get the first job from the queue (thread safe)*/
-void getFirstJob() {
-	if (runOnce == 1) { //not the first run on this job
-		pthread_mutex_lock(&jobListMutex);
-		//compare the first current job and the one from the past
-		if (firstIQ == jobListStart->jobNumber) {
-			countFIQ++; //increases check count number
-			if (countFIQ > 4)
-				printf("First job in queue is still waiting for the %d -th time \n", countFIQ - 4);
-		}
-		pthread_mutex_unlock(&jobListMutex);
-//		if (!isStarving()) {
-//			runOnce = 0; //reset runOnce to start checking on the next firstIQ
-//			countFIQ = 0;
-//			continue;
-//		}
-	} else if (runOnce == 0) { //if first run
-		pthread_mutex_lock(&jobListMutex);
-		firstIQ = jobListStart->jobNumber;
-		firstLevel = jobListStart->level;
-		pthread_mutex_unlock(&jobListMutex);
-		countFIQ = 1;
-		runOnce = 1;
-	}
+int getFirstSecurityLevel(SecurityLevel *level){
+  if(jobListStart->isTail){
+    return 1;
+  }
+  pthread_mutex_lock(&jobListMutex);
+  *level = jobListStart->nextJob->level;
+  pthread_mutex_unlock(&jobListMutex);
+  return 0;
+}
+
+int getFirstJobNumber(int *number){
+  if(jobListStart->isTail){
+    return 1;
+  }
+  pthread_mutex_lock(&jobListMutex);
+  *number = jobListStart->nextJob->jobNumber;
+  pthread_mutex_unlock(&jobListMutex);
+  return 0;
 }

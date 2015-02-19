@@ -3,7 +3,8 @@
 
 pthread_mutex_t clusterMutex;
 SecurityLevel cluster[2];
-int countClassified = 0;
+int previousJobFirst = -1;//The previous job that was run
+int jobSkippedCount=0;
 
 //Initialize all mutexex and other nessasary variables
 int initClusterStuff() {
@@ -32,6 +33,16 @@ Bool isClusterUnsecured() {
 	}
 	pthread_mutex_unlock(&clusterMutex);
 	return unsecured;
+}
+
+Bool canClusterTakeUnsecured(){
+	Bool returnValue = true;
+	pthread_mutex_lock(&clusterMutex);
+	if(cluster[0] == TOP_SECRET || cluster[0] == SECRET || cluster[1] == TOP_SECRET || cluster[1] == SECRET){
+		returnValue = false;
+	}
+	pthread_mutex_unlock(&clusterMutex);
+	return returnValue;
 }
 
 Bool isClusterAvailable() {
@@ -66,6 +77,17 @@ void enterCluster(Job *job) {
 				"You tried to enter the cluster with a job level of NONE\n");
 		exit(1);
 	}
+
+	//Statistics tracking
+	int jobWaiting;
+	getFirstJobNumber(&jobWaiting);
+	if(jobWaiting == previousJobFirst){
+		jobSkippedCount++;
+	} else {
+		jobSkippedCount = 0;
+		previousJobFirst = jobWaiting;
+	}
+
 	int clusterUsed = -1;
 	pthread_mutex_lock(&clusterMutex);
 	if (cluster[0] == NONE) {
@@ -82,8 +104,6 @@ void enterCluster(Job *job) {
 	printf(
 			"[ENTERING CLUSTER] Job Num: %2d, Security Level: %d, Cluster Num: %d\n",
 			job->jobNumber, job->level, job->inCluster);
-	printf("Alert: %d Classified jobs have been in the cluster",
-			countClassified);
 	pthread_mutex_unlock(&clusterMutex);
 	//Allow the job to enter the cluster
 	pthread_mutex_unlock(&(job->threadLock));
@@ -103,6 +123,10 @@ void exitCluster(Job *job) {
 	job->inCluster = -1;
 	pthread_mutex_unlock(&clusterMutex);
 
+}
+
+Bool isStarving(){
+	return jobSkippedCount > 4;
 }
 
 /*
@@ -139,26 +163,25 @@ void manageCluster() {
 			continue;
 		}
 
+		//If there is not a job in the queue
+		if (!isJobInQueue())
+			continue;
+
 		//If a job is starving
 		if (isStarving()) {
+			SecurityLevel level;
+			getFirstSecurityLevel(&level);
 			//check the type of the job
+			//printf("Starved Job %d\n", level);
+			if(level == UNCLASSIFIED && !canClusterTakeUnsecured()) continue;
 			//if UNSECURE and cluster is US then add
-			if (firstLevel == cluster[0] || firstLevel == cluster[1]) {
-				printf("Get the starved job inside the cluster\n");
-			}
 			Job *nextJob = NULL;
 			if (removeFirstJob(&nextJob)) {
 				errorWithContext("Failed to get the next job\n");
 			}
 			enterCluster(nextJob);
-			runOnce = 0; //reset runOnce to start checking on the next firstIQ
-			countFIQ = 0;
 			continue;
 		}
-
-		//If there is not a job in the queue
-		if (!isJobInQueue())
-			continue;
 
 		if (isClusterEmpty()) {
 			//We should pick a job to run

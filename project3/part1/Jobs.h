@@ -49,13 +49,8 @@ void initTheseJobs(SecurityLevel level);
 
 void printJobListStats();
 
-int isStarving();
+int getFirstSecurityLevel(SecurityLevel *level);
 
-void getFirstJob();
-
-int runOnce;
-int countFIQ;
-int firstIQ; //store the ID of the first job in queue
-int firstLevel; //store the level of firstIQ
+int getFirstJobNumber(int *number);
 
 #endif //_JOBS_H_
