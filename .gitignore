@@ -50,3 +50,5 @@ Module.symvers
 *.ko
 modules.order
 *.swp
+*.project
+*.rar

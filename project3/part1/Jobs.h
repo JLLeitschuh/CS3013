@@ -1,8 +1,6 @@
 #ifndef _JOBS_H_
 #define _JOBS_H_
 
-
-
 #include "SecurityLevel.h"
 #include "Error.h"
 #include "Random.h"
@@ -17,13 +15,13 @@
 #define TOP_SECRET_THREAD_COUNT 6
 
 typedef struct Job {
-  unsigned int jobNumber;
-  int inCluster; //Stores the cluster that the job is in -1 if not
-  SecurityLevel level;
-  pthread_mutex_t threadLock;
-  pthread_t jobThread;
-  int isTail;
-  struct Job *nextJob;
+	unsigned int jobNumber;
+	int inCluster; //Stores the cluster that the job is in -1 if not
+	SecurityLevel level;
+	pthread_mutex_t threadLock;
+	pthread_t jobThread;
+	int isTail;
+	struct Job *nextJob;
 } Job;
 
 //This is declared here because of circular dependency
@@ -51,5 +49,13 @@ void initTheseJobs(SecurityLevel level);
 
 void printJobListStats();
 
+int isStarving();
+
+void getFirstJob();
+
+int runOnce;
+int countFIQ;
+int firstIQ; //store the ID of the first job in queue
+int firstLevel; //store the level of firstIQ
 
 #endif //_JOBS_H_
