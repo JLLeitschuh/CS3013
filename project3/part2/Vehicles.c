@@ -9,6 +9,10 @@ Vehicle *S_list_start;
 sem_t W_list_lock;
 Vehicle *W_list_start;
 
+void printVehicleStats(Vehicle *vehicle, char* additional_message){
+  printf("[CAR] %35s Stats [Number: %2d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+}
+
 
 void *carThread(void *input){ //jobthreadmethod //rmv
   Vehicle *this_vehicle = (Vehicle*) input;
@@ -19,7 +23,7 @@ void *carThread(void *input){ //jobthreadmethod //rmv
 
   // Iterate infinitely
   while(1){
-    printf("[CAR] %d Assign car\n", this_vehicle->vehicleNumber);
+    //printf("[CAR] %d Assign car\n", this_vehicle->vehicleNumber);
     assignRandomPathToVehicle(this_vehicle);
     //printf("Add Vehicle to list\n");
     //enter queue for respective entry point
@@ -28,20 +32,20 @@ void *carThread(void *input){ //jobthreadmethod //rmv
     //Block on queue semaphore
     //printf("Before queue lock\n");
     sem_wait(&(this_vehicle->queueLock));
-    printf("[CAR] After queue lock\n");
+    //printf("[CAR] After queue lock\n");
+    printVehicleStats(this_vehicle, "Approaching intersection");
     //exit(1);
     enterIntersection(this_vehicle);
     //Now that I'm here I should be in the intersection
 
     //attempt to advance in the intersection until you leave
     while(advanceMeForward(this_vehicle)){
-      printf("[CAR]looping\n");
+      //printf("[CAR]looping\n");
     }
 
     //we have exited the intersection
     //Wait for a little bit before returing to the queue
   }
-  printf("Car %d crossing from %d has passed to %d\n", this_vehicle->vehicleNumber, this_vehicle->entryPoint, this_vehicle->destination );
   return 0;
 }//lhnguyen
 

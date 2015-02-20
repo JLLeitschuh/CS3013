@@ -49,6 +49,8 @@ int removeFirstVehicle(const CardinalDirection queueSelection, Vehicle **returnV
 
 void printVehicleQueueData();
 
+void printVehicleStats(Vehicle *vehicle, char* additional_message);
+
 /*
  * Gets the first vehicles destination
  * returns 1 if there is no vehicle waiting 0 if sucsessful
