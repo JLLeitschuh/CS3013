@@ -4,6 +4,7 @@
 #include "Boolean.h"
 #include "Intersection.h"
 #include "Random.h"
+#include "Vehicles.h"
 #include <pthread.h>
 #include "Error.h"
 #include <stdio.h>
@@ -56,6 +57,8 @@ void printVehicleStats(Vehicle *vehicle, char* additional_message);
  * returns 1 if there is no vehicle waiting 0 if sucsessful
  */
 int getFirstDestination(CardinalDirection queueSelection, IntersectionQuadrant_t *returnDestination);
+
+Bool isValidPath(CardinalDirection entry, IntersectionQuadrant_t destination);
 
 
 Bool isEmergencyVehicleWaiting();

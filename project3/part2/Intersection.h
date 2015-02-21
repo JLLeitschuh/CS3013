@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+
 typedef enum {
   NORTH = 1,
   EAST = 0,
@@ -23,8 +24,7 @@ typedef enum{
 typedef struct IntersectionQuadrant{
   IntersectionQuadrant_t quadrant; //For easier comparisons
   CardinalDirection entry; //Where cars will enter from for this quadrant
-
-  sem_t occupied; // If occupied then this will be less than or equal to 0 if not it will be a 1
+  Bool isOccupied;
 
   struct IntersectionQuadrant *nextQuadrant;
 } IntersectionQuadrant;

@@ -180,8 +180,7 @@ Bool isIntersectionAvailable(){
 
   //iterate through the intersection and count the number of quadrants which are occupied
   int i;
-  for(i = 0; i < 4; i++);
-  {
+  for(i = 0; i < 4; i++){
     int value;
     sem_getvalue(&(currentQuadrant->occupied), &value);
     if(value <= 1) numOccupied++;

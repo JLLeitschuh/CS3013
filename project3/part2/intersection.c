@@ -3,7 +3,6 @@
 #include "Vehicles.h"
 #include "Boolean.h"
 #include "Intersection.h"
-#include "IntersectionManager.h"
 #include "Error.h"
 
 int main(int argc, char *argv[]){
@@ -18,7 +17,5 @@ int main(int argc, char *argv[]){
   getchar();
   printVehicleQueueData();
   getchar();
-
-  manageIntersection();
-
+  while(1){};
 }
