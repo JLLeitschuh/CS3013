@@ -62,7 +62,16 @@ Vehicle* _getVehicleListHead(CardinalDirection direction){
 }
 
 void printVehicleStats(Vehicle *vehicle, char* additional_message){
-  printf("[CAR] %35s Stats [Number: %2d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+  if(vehicle->level == CAR){
+    printf("[CAR] %35s Stats [Number: %2d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+  } else if (vehicle->level == EMERGENCY){
+    printf("[EMERGENCY] %17s Stats [Number: %2d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+  } else if (vehicle->level == MOTORCADE){
+    printf("[MOTORCADE] %35s Stats [Number: %2d Entry: %d, Destination: %d]\n", additional_message, vehicle->vehicleNumber, vehicle->entryPoint, vehicle->destination);
+  } else {
+    errorWithContext("Invalid vehicle type");
+    exit(1);
+  }
 }
 
 void wakeUp(CardinalDirection direction){
@@ -207,31 +216,7 @@ void printVehicleQueueData(){
   _printVehicleQueueData(SOUTH);
 }
 
-Bool areAnyVehiclesOfType(CardinalDirection queue, VehicleLevel level){
 
-}
-
-
-Bool isEmergencyVehicleWaiting(){
-
-}
-
-/*
-* Gets the cardinal direction that the emergency vehcile will come from
-* return 1 if failure and 0 if sucsess
-*/
-int getEmergencyVehicleEntry(CardinalDirection *returnDirection);
-
-Bool isMotorcadeWaiting();
-
-int getMotorcadeEntry(CardinalDirection *returnDirection);
-
-/*
-* Gets the count of how many cars are waiting in each respective queue.
-*/
-void getQueueCount(int *N_count, int *E_count, int *S_count, int *W_count){
-
-}
 
 //The thread that runs each cars logic
 void *carThread(void *input){ //jobthreadmethod //rmv
@@ -301,6 +286,32 @@ void *carThread(void *input){ //jobthreadmethod //rmv
   return 0;
 }//lhnguyen
 
+void *emergencyVehicleThread(void *input){
+  Vehicle *this_vehicle = (Vehicle*) input;
+  //Decrement the semaphore so that next time wait is called on it it blocks
+  sem_wait(&(this_vehicle->queueLock));
+
+  printf("[EMERGENCY] %d begining loop\n", this_vehicle->vehicleNumber);
+  while(1){
+    assignRandomPathToVehicle(this_vehicle);
+    //printf("Add Vehicle to list\n");
+    //enter queue for respective entry point
+
+    printVehicleStats(this_vehicle, "Approaching intersection");
+    while(tryEnterIntersection(this_vehicle)){
+    }//Just keep trying to enter
+    printVehicleStats(this_vehicle, "Entering intersection");
+    moveThroughIntersection(this_vehicle);
+    printVehicleStats(this_vehicle, "Exiting intersection");
+    alertOtherCars();
+
+    //long randomRunTime = getRandomBetween(500000, 2000000);
+    usleep(10);
+
+  }
+  return 0;
+}
+
 
 int vehicleCount = 0;
 int initVehicleStruct(Vehicle *init, VehicleLevel level){
@@ -316,14 +327,20 @@ int initVehicleStruct(Vehicle *init, VehicleLevel level){
   }
   switch(level){
     case CAR:
-    if(pthread_create(&(init->vehicleThread), NULL, carThread, init)){
-      errorWithContext("Thread creation failed");
-      exit(1);
-    }
-    break;
+      if(pthread_create(&(init->vehicleThread), NULL, carThread, init)){
+        errorWithContext("Thread creation failed");
+        exit(1);
+      }
+      break;
+    case EMERGENCY:
+      if(pthread_create(&(init->vehicleThread), NULL, emergencyVehicleThread, init)){
+        errorWithContext("Thread creation failed");
+        exit(1);
+      }
+      break;
     default:
-    errorWithContext("Initialization not written for this vehicle type");
-    exit(1);
+      errorWithContext("Initialization not written for this vehicle type");
+      exit(1);
     break;
   }
 

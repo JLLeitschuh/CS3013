@@ -12,6 +12,8 @@ int main(int argc, char *argv[]){
     Vehicle *initVehicle = malloc(sizeof(Vehicle));
     initVehicleStruct(initVehicle, CAR);
   }
+  Vehicle *emergencyVehicle = malloc(sizeof(Vehicle));
+  initVehicleStruct(emergencyVehicle, EMERGENCY);
 
   usleep(3000);
   getchar();

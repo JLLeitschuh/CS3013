@@ -94,7 +94,13 @@ Bool isIntersectionAvailable(Vehicle *vehicle){
 }
 
 //return 1 is failure
+Boolean emergencyVehicleWaiting = false;
 int tryEnterIntersection(Vehicle *vehicle){
+  if(vehicle->level == EMERGENCY){
+    emergencyVehicleWaiting = true;
+  } else if( emergencyVehicleWaiting == true){
+    return 1; //Turned away by the intersection
+  }
   lockIntersection();
   //printf("Trying to enter intersection\n");
 
